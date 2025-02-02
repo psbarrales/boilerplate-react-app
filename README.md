@@ -1,6 +1,6 @@
 # Boilerplate App Template - v1.0.0
 
-Bienvenido al proyecto base para el desarrollo de aplicaciones. Este sistema está construido con **Ionic v8** y **Vite**, diseñado para ser modular, escalable y mantenible. Utiliza una **arquitectura hexagonal** (Ports and Adapters) que garantiza el desacoplamiento entre capas y facilita la evolución del sistema.
+Bienvenido al proyecto base para el desarrollo de aplicaciones. Este sistema está construido con **Vite**, diseñado para ser modular, escalable y mantenible. Utiliza una **arquitectura hexagonal** (Ports and Adapters) que garantiza el desacoplamiento entre capas y facilita la evolución del sistema.
 
 ## Tabla de Contenidos
 
@@ -15,7 +15,7 @@ Bienvenido al proyecto base para el desarrollo de aplicaciones. Este sistema est
 
 ## Descripción del Proyecto
 
-Este boilerplate está diseñado para construir aplicaciones modernas utilizando **Ionic** y **React**, con **Vite** como empaquetador. Está optimizado para ofrecer:
+Este boilerplate está diseñado para construir aplicaciones modernas utilizando **React**, con **Vite** como empaquetador. Está optimizado para ofrecer:
 
 - Modularidad y escalabilidad gracias a su **arquitectura hexagonal**.
 - Pruebas robustas mediante **Testing Library** (unitarias) y **Cypress** con **Cucumber** (E2E).
