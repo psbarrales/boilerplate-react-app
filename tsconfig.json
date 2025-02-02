@@ -1,0 +1,73 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext",
+      "es5",
+      "dom"
+    ],
+    "types": [
+      "cypress",
+      "node"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@application/*": [
+        "./src/application/*"
+      ],
+      "@components/*": [
+        "./src/theme/components/*"
+      ],
+      "@domain/*": [
+        "./src/domain/*"
+      ],
+      "@hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@infrastructure/*": [
+        "./src/infrastructure/*"
+      ],
+      "@pages/*": [
+        "./src/pages/*"
+      ],
+      "@presentation/*": [
+        "./src/presentation/*"
+      ],
+      "@providers/*": [
+        "./src/providers/*"
+      ],
+      "@routes/*": [
+        "./src/routes/*"
+      ],
+      "@shared/*": [
+        "./src/shared/*"
+      ],
+      "@theme/*": [
+        "./src/theme/*"
+      ],
+    }
+  },
+  "include": [
+    "src",
+    "cypress/**/*.ts"
+, "test/App.test.tsx"  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Boilerplate React App",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
