@@ -22,6 +22,5 @@ export const withBooting = (children: ReactNode) => {
         []
     );
 
-    // Renderizar la aplicación envuelta en todos los providers
     return <BootedProviders>{children}</BootedProviders>;
 };

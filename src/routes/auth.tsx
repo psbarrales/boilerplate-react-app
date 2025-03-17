@@ -1,8 +1,5 @@
 import { Navigate } from "react-router";
-import { ProtectedRouteByRoles, PublicUnAuthorizedRoute } from "./routeGuards";
-import Login from "@presentation/pages/Register/Login";
-import Email from "@presentation/pages/Register/Email";
-import OTP from "@presentation/pages/Register/OTP";
+import { PublicUnAuthorizedRoute } from "./routeGuards";
 
 export default [
     {
@@ -15,24 +12,8 @@ export default [
             },
             {
                 path: "login",
-                element: <Login />,
-            },
-            {
-                path: "email",
-                element: <Email />,
-            },
-            {
-                path: "otp",
-                element: <OTP />,
-            },
+                element: <Navigate to={"/app/home"} replace />,
+            }
         ],
-    },
-    {
-        path: "auth/register",
-        element: <ProtectedRouteByRoles
-            roles={['INVITED']}
-            component={<Login />}
-            notRoleComponent={<Navigate to={"/auth/login"} replace />}
-        />,
-    },
+    }
 ]
