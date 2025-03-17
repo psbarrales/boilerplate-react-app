@@ -6,6 +6,8 @@ import NotFound from "@presentation/pages/NotFound";
 import { PublicRoute } from "@routes/routeGuards";
 import auth from "./auth";
 import app from "./app";
+import NotImplemented from "@presentation/pages/NotImplemented";
+import VersionUpdatePrompt from "@presentation/pages/VersionUpdatePrompt";
 
 export const router = createBrowserRouter([
     {
@@ -18,8 +20,12 @@ export const router = createBrowserRouter([
                 element: <PublicRoute component={<Navigate to={"/auth/login"} replace />} />
             },
             {
+                path: "update",
+                element: <VersionUpdatePrompt />
+            },
+            {
                 path: "debug",
-                element: <div>Debug Page</div>
+                element: <NotImplemented />
             },
             ...auth,
             ...app

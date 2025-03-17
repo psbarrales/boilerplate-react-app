@@ -4,6 +4,9 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "repository": {
+    "url": "https://github.com/psbarrales/boilerplate-react-app.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
