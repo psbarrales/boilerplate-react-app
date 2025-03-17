@@ -10,10 +10,10 @@ const VersionUpdatePrompt: React.FC<IProps> = () => {
                     <h1>Actualización Disponible</h1>
                 </div>
             </div>
-            <div className="content ion-padding">
+            <div className="content padding">
                 <h1>Actualización Disponible</h1>
                 <center>Hay una nueva actualización disponible</center>
-                <center>v3.0.0</center>
+                <center>v0.0.1</center>
             </div>
             <div className="footer">
                 <button className="strong" onClick={() => confirm()}>

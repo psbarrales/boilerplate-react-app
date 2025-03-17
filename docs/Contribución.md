@@ -171,7 +171,7 @@ Seguimos una arquitectura hexagonal (Ports and Adapters) para asegurar el desaco
 1. Clona el repositorio:
 
 ```bash
-git clone this/boilerplate-app.git
+git clone https://github.com/pablosebastian-barrales_cencosud/boilerplate-app.git
 ```
 
 2. Instala las dependencias:

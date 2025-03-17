@@ -9,13 +9,7 @@ import sys
 load_dotenv()
 
 def prompt():
-    return """# System:
-    
-# Usando esta estructura y template:
-```
-{template}
-```
-
+    return """Eres un generador de contenido documental para un proyecto, `dado un template + valores => Actualizas al documento`
 ## Usando el template y estos valores:
 Nombre Proyecto: {project_name}
 Repositorio: {repository}
@@ -23,27 +17,26 @@ Repositorio: {repository}
 {package}
 ```
 
-## Para una estructura de archivos:
+# Usando esta codigo, estructura y template:
 ```
-{directory_tree}
+{template}
 ```
-
-### Actualiza la guía de contribución
+### Actualiza el documento Arquitectura.md haciendolo más detallado para los ejemplos
 """
 
 event = False
 
-def llm_guide_content(template, project_name, repository_url, package_json, directory_tree):
+def llm_guide_content(template, project_name, repository_url, package_json, directory_tree, repo):
     global event
     client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+        base_url = "https://api.groq.com/openai/v1", 
+        api_key=os.environ.get("GROQ_API_KEY"),  # This is the default and can be omitted
     )
     prompt_value = prompt().format(
         template=template, 
         project_name=project_name, 
         repository=repository_url, 
         package=package_json, 
-        directory_tree=directory_tree
     )
 
     print("Procesando... Esto puede tomar unos segundos:")  # Mensaje inicial
@@ -65,14 +58,25 @@ def llm_guide_content(template, project_name, repository_url, package_json, dire
         messages=[
             {
                 "role": "system",
-                "content": "Eres un generador de contenido documental para un proyecto, `dado un template + valores => Actualizas al documento`"
+                "content": f"""### CodeBase
+--- directory_tree ---
+```
+{directory_tree}
+```
+--- code ---
+{repo}
+--- /code ---
+### Use Codebase to update the document
+----"""
             },
             {
                 "role": "user",
                 "content": prompt_value,
             }
         ],
-        model="gpt-4o",
+        model="qwen-2.5-coder-32b",
+        # model="gpt4-o",
+        max_tokens=8000
     )
 
     print(chat_completion)
@@ -93,14 +97,16 @@ def generate_guide():
     repository_url = 'git@github.com:Cencosud-xlabs/shopping-app.git'  # Puedes ajustar esto si es necesario
 
     directory_tree = generate_directory_tree()
-    template = generate_template(project_name, project_version, repository_url, directory_tree)
+    with open('./Template.md', 'r', encoding='utf-8') as f:
+        template = f.read()
+    with open('./repo.md', 'r', encoding='utf-8') as f:
+        repo = f.read()
+    # template = generate_template(project_name, project_version, repository_url, directory_tree)
 
-    with open('./Guía de Contribución y Arquitectura del Proyecto.md', 'w', encoding='utf-8') as f:
-        print('Started.')
-        chat_completion = llm_guide_content(template, project_name, repository_url, package_json, directory_tree)
+    with open('./Arquitectura.md', 'w', encoding='utf-8') as f:
+        chat_completion = llm_guide_content(template, project_name, repository_url, package_json, directory_tree, repo)
         f.write(chat_completion)
-    print('Finished.')
-    event.set()
+    # event.set()
 
 
 
