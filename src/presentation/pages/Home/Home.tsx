@@ -1,8 +1,6 @@
 import { Search } from "lucide-react";
 
-interface IProps { }
-
-const Home: React.FC<IProps> = () => {
+const Home: React.FC = () => {
     return (
         <div className="container mx-auto py-10 px-4">
             <div className="flex flex-col gap-8">

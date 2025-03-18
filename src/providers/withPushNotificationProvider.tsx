@@ -1,17 +1,13 @@
-import React, { createContext, ReactNode, useContext, useState, useEffect, ComponentType, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, ComponentType, useRef, PropsWithChildren } from 'react';
 import { PushNotificationsPort } from '@domain/ports/out/device/PushNotificationsPort';
 import { useCapacitorPushNotificationsAdapter } from '@infrastructure/capacitor/usePushNotificationsAdapter';
+import Fallback from '@pages/Fallback';
 
 const PushNotificationsContext = createContext<PushNotificationsPort | null>(null);
 
-// Initialize with Capacitor Push Notification
-const createCapacitorPushNotificationsService = (): PushNotificationsPort => {
-    return useCapacitorPushNotificationsAdapter()
-};
-
-export const withPushNotificationsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const WithPushNotificationsProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [initialized, setInitialized] = useState(false);
-    const pushNotificationsService = useRef<PushNotificationsPort>(createCapacitorPushNotificationsService());
+    const pushNotificationsService = useRef<PushNotificationsPort>(useCapacitorPushNotificationsAdapter());
 
     useEffect(() => {
         const loadConfig = async () => {
@@ -23,7 +19,7 @@ export const withPushNotificationsProvider: React.FC<{ children: ReactNode }> = 
     }, []);
 
     if (!initialized || !pushNotificationsService.current) {
-        return <div>Espere...</div>;
+        return <Fallback />;
     }
 
     return (

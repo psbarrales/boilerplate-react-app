@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router";
-import { ProtectedRouteByRoles, PublicRoute } from "./routeGuards";
+import { PublicRoute } from "./routeGuards";
 import Home from "@presentation/pages/Home/Home";
 
 const home = {

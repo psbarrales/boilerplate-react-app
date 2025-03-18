@@ -50,7 +50,7 @@ export default defineConfig({
       '@domain': path.resolve(__dirname, './src/domain'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
       '@infrastructure': path.resolve(__dirname, './src/infrastructure'),
-      '@pages': path.resolve(__dirname, './src/pages'),
+      '@pages': path.resolve(__dirname, './src/presentation/pages'),
       '@presentation': path.resolve(__dirname, './src/presentation'),
       '@providers': path.resolve(__dirname, './src/providers'),
       '@routes': path.resolve(__dirname, './src/routes'),

@@ -18,6 +18,7 @@
     "cypress:run": "cypress run",
     "cypress": "cypress open",
     "lint": "eslint ./src --ext .ts,.tsx",
+    "lint:fix": "eslint --fix ./src --ext .ts,.tsx",
     "prepare": "husky",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",

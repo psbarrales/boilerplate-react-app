@@ -1,8 +1,6 @@
 import React from 'react';
 
-interface IProps { }
-
-const VersionUpdatePrompt: React.FC<IProps> = () => {
+const VersionUpdatePrompt: React.FC = () => {
     return (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform transition-all">

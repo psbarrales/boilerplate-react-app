@@ -1,32 +1,29 @@
 import React, {
     createContext,
-    ReactNode,
     useContext,
     useState,
     ComponentType,
     useRef,
+    PropsWithChildren,
 } from 'react';
 import { AnalyticsPort } from '@domain/ports/out/analytics/AnalyticsPort';
 import { useFirebaseAnalyticsAdapter } from '@infrastructure/firebase/useFirebaseAnalyticsAdapter';
+import Fallback from '@pages/Fallback';
 
 const AnalyticsContext = createContext<AnalyticsPort | null>(null);
 
-const createFirebaseAnalyticsService = (): AnalyticsPort => {
-    return useFirebaseAnalyticsAdapter();
-};
-
-export const withAnalyticsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const WithAnalyticsProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const analyticsServiceRef = useRef<AnalyticsPort | null>(null);
     const [initialized, setInitialized] = useState(false);
-
+    const firebaseAnalytics = useFirebaseAnalyticsAdapter();
 
     if (!analyticsServiceRef.current) {
-        analyticsServiceRef.current = createFirebaseAnalyticsService();
+        analyticsServiceRef.current = firebaseAnalytics;
         setInitialized(true)
     }
 
     if (!initialized || !analyticsServiceRef.current) {
-        return <div>Espere...</div>;
+        return <Fallback />;
     }
 
     return (

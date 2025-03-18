@@ -8,7 +8,7 @@ export const withProvider = <P extends object>(
     // Maneja un único provider convirtiéndolo en un array
     const ComposedProviders = Array.isArray(providers)
         ? composeProviders(...providers)
-        : ({ children }: PropsWithChildren) => React.createElement(providers, { children });
+        : ({ children }: PropsWithChildren) => React.createElement(providers, null, children);
 
     // Retorna el componente envuelto en los providers compuestos
     return (props: P) => (

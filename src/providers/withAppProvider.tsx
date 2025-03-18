@@ -1,27 +1,25 @@
-import React, { createContext, ReactNode, useContext, useState, useEffect, ComponentType, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, ComponentType, useRef, PropsWithChildren } from 'react';
 import { AppPort } from '@domain/ports/out/app/AppPort';
 import { useAppAdapter } from '@infrastructure/capacitor/useAppAdapter';
+import Fallback from '@pages/Fallback';
 
 const AppContext = createContext<AppPort | null>(null);
 
-// Initialize with Firebase Adapter
-const createAppService = (): AppPort => {
-    return useAppAdapter()
-};
-
-export const withAppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const appServiceRef = useRef<AppPort | null>(null);
+// Initialize with Capacitor App Adapter
+export const WithAppProvider: React.FC<PropsWithChildren> = ({ children }) => {
+    const appAdapter = useAppAdapter();
+    const appServiceRef = useRef<AppPort | null>(appAdapter);
     const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
         if (!appServiceRef.current) {
-            appServiceRef.current = createAppService();
+            appServiceRef.current = appAdapter;
         }
         setInitialized(true);
-    }, []);
+    }, [appAdapter]);
 
     if (!initialized || !appServiceRef.current) {
-        return <div>Espere...</div>;
+        return <Fallback />;
     }
 
     return (

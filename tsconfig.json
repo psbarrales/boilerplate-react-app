@@ -42,7 +42,7 @@
         "./src/infrastructure/*"
       ],
       "@pages/*": [
-        "./src/pages/*"
+        "./src/presentation/pages/*"
       ],
       "@presentation/*": [
         "./src/presentation/*"

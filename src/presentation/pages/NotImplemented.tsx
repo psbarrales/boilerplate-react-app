@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router';
 
-interface IProps { }
 
-const NotImplemented: React.FC<IProps> = () => {
+const NotImplemented: React.FC = () => {
     const navigate = useNavigate();
 
     return (

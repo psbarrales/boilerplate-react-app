@@ -1,27 +1,24 @@
-import React, { createContext, ReactNode, useContext, useState, useEffect, ComponentType } from 'react';
+import React, { createContext, useContext, useState, useEffect, ComponentType, PropsWithChildren, useRef } from 'react';
 import { PreferencesStoragePort } from '@domain/ports/out/app/PreferencesStoragePort';
 import { useCapacitorPreferencesStorageAdapter } from '@infrastructure/capacitor/useCapacitorPreferencesStorageAdapter';
+import Fallback from '@pages/Fallback';
 
 const PreferencesStorageContext = createContext<PreferencesStoragePort | null>(null);
 
-const createCapacitorPreferencesStorageService = (): PreferencesStoragePort => {
-    return useCapacitorPreferencesStorageAdapter()
-};
-
-export const withPreferencesStorageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const WithPreferencesStorageProvider: React.FC<PropsWithChildren> = ({ children }) => {
+    const capacitorAdapter = useRef(useCapacitorPreferencesStorageAdapter());
     const [preferencesStorageService, setPreferencesStorageService] = useState<PreferencesStoragePort | undefined>();
 
     useEffect(() => {
         const loadConfig = async () => {
-            const service = createCapacitorPreferencesStorageService()
-            setPreferencesStorageService(service)
+            setPreferencesStorageService(capacitorAdapter.current)
         };
 
         loadConfig();
-    }, []);
+    }, [capacitorAdapter]);
 
     if (!preferencesStorageService) {
-        return <div>Espere...</div>;
+        return <Fallback />;
     }
 
     return (

@@ -2,7 +2,7 @@ import { IUserRole } from "@domain/models/entities/IUser";
 import { useAuth } from "@providers/AuthProvider";
 import { useUser } from "@providers/UserProvider";
 import React from "react";
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 
 interface RouteProps {
     component?: React.FC<any> | JSX.Element;
@@ -35,14 +35,16 @@ export const PublicRoute: React.FC<RouteProps> = ({ component }) => {
 };
 
 export const PublicUnAuthorizedRoute = () => {
-    const auth = useAuth()
+    const auth = useAuth();
+    const location = useLocation();
 
     if (!auth.isReady) {
         return <div></div>;
     }
 
     if (auth.isAuthenticated) {
-        return <Navigate to={"/app/home/dashboard"} replace />
+        const fromPath = location.state?.from?.pathname || "/app/home";
+        return <Navigate to={fromPath} replace />;
     }
     return <Outlet />;
 };
@@ -55,13 +57,14 @@ export const ProtectedRouteByRoles: React.FC<ProtectedRouteByRoleProps & RoutePr
 }) => {
     const auth = useAuth();
     const user = useUser();
+    const location = useLocation();
 
     if (!auth.isReady) {
         return <div></div>;
     }
 
     if (!auth.isAuthenticated) {
-        return <Navigate to="/auth/login" replace />;
+        return <Navigate to="/auth/login" replace state={{ from: location }} />;
     }
 
     if (!user.role) {
@@ -73,14 +76,10 @@ export const ProtectedRouteByRoles: React.FC<ProtectedRouteByRoleProps & RoutePr
             <BuildComponent
                 component={
                     NotRoleComponent || (
-                        <div>
-                            <div>
-                                <center>
-                                    Rol "{user.role}" no tiene permiso para acceder:{" "}
-                                    {JSON.stringify(roles)}
-                                </center>
-                            </div>
-                        </div>
+                        <center>
+                            Rol {`"${user.role}"`} no tiene permiso para acceder:{" "}
+                            {JSON.stringify(roles)}
+                        </center>
                     )
                 }
             />

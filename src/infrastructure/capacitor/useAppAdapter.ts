@@ -2,8 +2,8 @@
 const MockApp = {
     getInfo: async () => ({ name: 'MockApp', version: '1.0.0' }),
     getState: async () => ({ isActive: true }),
-    minimizeApp: async () => console.log('App minimized'),
-    exitApp: async () => console.log('App exited')
+    minimizeApp: async () => console.warn('App minimized'),
+    exitApp: async () => console.warn('App exited')
 };
 
 import { AppPort } from '@domain/ports/out/app/AppPort';

@@ -1,11 +1,12 @@
-import React, { createContext, ReactNode, useContext, useState, useEffect, ComponentType, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, ComponentType, useRef, PropsWithChildren } from 'react';
 import { RemoteConfigPort } from '@domain/ports/out/app/RemoteConfigPort';
 import { useFirebaseRemoteConfigAdapter } from '@infrastructure/firebase/useFirebaseRemoteConfigAdapter';
+import Fallback from '@pages/Fallback';
 
 const RemoteConfigContext = createContext<RemoteConfigPort | null>(null);
 
 // Initialize with Firebase Adapter
-export const withRemoteConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const WithRemoteConfigProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const remoteConfigServiceRef = useRef<RemoteConfigPort | null>(useFirebaseRemoteConfigAdapter());
     const [initialized, setInitialized] = useState(false);
 
@@ -14,7 +15,7 @@ export const withRemoteConfigProvider: React.FC<{ children: ReactNode }> = ({ ch
     }, []);
 
     if (!initialized || !remoteConfigServiceRef.current) {
-        return <div>Espere...</div>
+        return <Fallback />;
     }
 
     return (

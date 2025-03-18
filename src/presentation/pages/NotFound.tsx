@@ -1,8 +1,6 @@
 import { useNavigate } from 'react-router';
 
-interface IProps { }
-
-const NotFound: React.FC<IProps> = () => {
+const NotFound: React.FC = () => {
     const navigate = useNavigate();
 
     return (
