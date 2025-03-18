@@ -2,12 +2,12 @@ import {
     createBrowserRouter,
     Navigate,
 } from "react-router-dom";
-import NotFound from "@presentation/pages/NotFound";
+import NotFound from "@pages/NotFound";
 import { PublicRoute } from "@routes/routeGuards";
 import auth from "./auth";
 import app from "./app";
-import NotImplemented from "@presentation/pages/NotImplemented";
-import VersionUpdatePrompt from "@presentation/pages/VersionUpdatePrompt";
+import NotImplemented from "@pages/NotImplemented";
+import VersionUpdatePrompt from "@pages/VersionUpdatePrompt";
 
 export const router = createBrowserRouter([
     {
