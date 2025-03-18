@@ -1,8 +1,8 @@
 ### README.md
 
-# Boilerplate App - v1.0.0
+# Boilerplate App Template - v1.0.0
 
-Bienvenido al proyecto **`boilerplate-app`**, una base sólida para el desarrollo de aplicaciones web modernas. Este sistema está construido con **Vite**, diseñado para ser modular, escalable y mantenible. Utiliza una **arquitectura hexagonal** (Ports and Adapters) que garantiza el desacoplamiento entre capas y facilita la evolución del sistema.
+Bienvenido al proyecto base para el desarrollo de aplicaciones. Este sistema está construido con **Vite**, diseñado para ser modular, escalable y mantenible. Utiliza una **arquitectura hexagonal** (Ports and Adapters) que garantiza el desacoplamiento entre capas y facilita la evolución del sistema.
 
 ## Tabla de Contenidos
 
@@ -11,21 +11,30 @@ Bienvenido al proyecto **`boilerplate-app`**, una base sólida para el desarroll
 3. [Configuración del Entorno](#configuración-del-entorno)
 4. [Estructura del Proyecto](#estructura-del-proyecto)
 5. [Arquitectura del Proyecto](#arquitectura-del-proyecto)
-6. [Pruebas](#pruebas)
-7. [Documentación](#documentación)
-8. [Contribuir al Proyecto](#contribuir-al-proyecto)
-9. [Recursos Adicionales](#recursos-adicionales)
+6. [Desarrollo](#desarrollo)
+    - [Pruebas](#pruebas)
+    - [Storybook](#storybook)
+7. [Integración de Componentes Shadcn](#integración-de-componentes-shadcn)
+8. [Recursos Adicionales](#recursos-adicionales)
+9. [Contribuir al Proyecto](#contribuir-al-proyecto)
 
 ---
 
 ## Descripción del Proyecto
 
-El **Boilerplate App** proporciona una base sólida para proyectos de React, optimizada en rendimiento y escalabilidad. Está configurado para ofrecer:
+**Nombre del Proyecto:** `boilerplate-app`
 
-- Modularidad y escalabilidad gracias a su **arquitectura hexagonal**.
-- Pruebas robustas mediante **Testing Library** (unitarias) y **Cypress** con **Cucumber** (end-to-end).
-- Documentación visual de componentes con **Storybook**.
-- Componentes reutilizables y personalizables con [Shadcn/ui](https://ui.shadcn.com/).
+**Repositorio:** [https://github.com/psbarrales/boilerplate-react-app.git](https://github.com/psbarrales/boilerplate-react-app.git)
+
+Este boilerplate está diseñado para construir aplicaciones modernas utilizando **React**, con **Vite** como empaquetador. Está optimizado para ofrecer:
+
+- **Modularidad y escalabilidad** gracias a su **arquitectura hexagonal**.
+- **Pruebas robustas** mediante **Testing Library** (unitarias) y **Cypress** con **Cucumber** (E2E).
+- **Documentación visual de componentes** con **Storybook**.
+- **Integración de componentes** [Shadcn](https://ui.shadcn.com/) para interfaces de usuario atractivas y accesibles.
+- **Compatibilidad con Service Workers** para mejor rendimiento y accesibilidad.
+- **Configuración de calidad de código** con **ESLint**.
+- **Configuración de pruebas de calidad de código** con **Husky**.
 
 ---
 
@@ -33,9 +42,9 @@ El **Boilerplate App** proporciona una base sólida para proyectos de React, opt
 
 Para trabajar en este proyecto, necesitas tener instalados los siguientes programas:
 
-- **Node.js**: versión 14 o superior. Se recomienda usar [nvm](https://github.com/nvm-sh/nvm) para manejar múltiples versiones de Node.js.
-- **npm** o **yarn**: Gestores de paquetes para npm.
-- **Git**: Sistema de control de versiones para el flujo de trabajo colaborativo.
+- **Node.js**: versión 14 o superior.
+- **npm** o **yarn**.
+- **Git**.
 
 ---
 
@@ -45,7 +54,7 @@ Para trabajar en este proyecto, necesitas tener instalados los siguientes progra
 
    ```bash
    git clone https://github.com/psbarrales/boilerplate-react-app.git
-   cd boilerplate-app
+   cd boilerplate-react-app
    ```
 
 2. **Instala las dependencias**:
@@ -56,15 +65,7 @@ Para trabajar en este proyecto, necesitas tener instalados los siguientes progra
    yarn install
    ```
 
-3. **Configura las variables de entorno** según tus necesidades. Puedes crear un archivo `.env` basado en `.env.example` (si existe):
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Edita el archivo `.env` para definir variables necesarias para el proyecto, como claves de Firebase.
-
-4. **Ejecuta el proyecto en modo desarrollo**:
+3. **Ejecuta el proyecto en modo desarrollo**:
 
    ```bash
    npm run dev
@@ -72,54 +73,88 @@ Para trabajar en este proyecto, necesitas tener instalados los siguientes progra
    yarn dev
    ```
 
-5. **Accede a la aplicación** en tu navegador en `http://localhost:5173/`.
+4. **Accede a la aplicación** en tu navegador en `http://localhost:5173/`.
 
 ---
 
 ## Estructura del Proyecto
 
-El proyecto sigue una estructura organizada para facilitar la comprensión y el mantenimiento. Aquí tienes una descripción detallada de cada carpeta:
+El proyecto sigue una estructura modular basada en **Arquitectura Hexagonal** (Ports and Adapters) y **Clean Architecture**. Aquí te presentamos una visión detallada de la estructura del proyecto:
 
-- **`/src`**: Contiene el código fuente principal de la aplicación.
-  - **`components.json`**: Configuración de los componentes.
-  - **`routes`**: Definición de rutas de la aplicación.
-  - **`presentation`**: Componentes de presentación (Vistas).
-  - **`application`**: Casos de uso y lógica de negocio.
-  - **`domain`**: Definición de modelos y puertos.
-  - **`infrastructure`**: Implementación de puertos y configuración de integraciones externas.
-  - **`providers`**: Componentes y hooks para manejar el estado global y proveedores.
-  - **`theme`**: Definición de estilos y temas.
-  - **`tests`**: Pruebas unitarias e integradas.
-  - **`assets`**: Archivos estáticos (imágenes, fuentes, etc.).
-- **`public`**: Archivos no procesados por Webpack/Vite.
-- **`docs`**: Documentación del proyecto.
-- **`cypress`**: Configuración y pruebas E2E.
-- **`stories`**: Definición de historias para Storybook.
-- **Otros archivos de configuración**: `vite.config.ts`, `tsconfig.json`, `package.json`, etc.
-
-Para una explicación detallada de la estructura y cómo interactúan las capas, consulta [docs/Arquitectura.md](docs/Arquitectura.md).
+1. **`src`**: Contiene los archivos de la aplicación.
+    - **`application`**: Casos de uso de la aplicación.
+        - **`auth`**: Manejo de autenticación.
+        - **`user`**: Manejo de usuarios.
+    - **`domain`**: Dominio de la aplicación, incluyendo modelos, puertos de entrada y salida.
+    - **`infrastructure`**: Adaptadores para la infraestructura.
+        - **`api`**: Adaptadores para consumir APIs.
+        - **`capacitor`**: Adaptadores específicos para Capacitor.
+        - **`firebase`**: Adaptadores específicos para Firebase.
+    - **`assets`**: Archivos estáticos y recursos.
+    - **`presentation`**: Componentes de Presentación.
+    - **`routes`**: Configuración de rutas.
+    - **`theme`**: Estilos de la aplicación.
+    - **`providers`**: Proveedores de contexto.
+    - **`__test__`**: Archivos de pruebas.
+2. **`cypress`**: Configuración para pruebas End-to-End con Cypress.
+   - **`e2e`**: Archivos de pruebas Cucumber.
+   - **`fixtures`**: Ficheros de datos para pruebas.
+3. **`docs`**: Documentación del proyecto.
+   - **`Template.md`**: Plantilla para documentación adicional.
+   - **`Arquitectura.md`**: Descripción detallada de la arquitectura del proyecto.
+   - **`Contribución.md`**: Guía de contribución al proyecto.
+   - **`README.template.md`**: Plantilla para README.
+   - **`repo.md`**: Información relevante del repositorio.
+   - **`draw_diagram.py`**: Script para generar diagramas.
+   - **`guide_generator.py`**: Generador de guías.
+   - **`readme_generator.py`**: Generador de README.
+   - **`repo_to_markdown.py`**: Convierte información del repositorio a Markdown.
+   - **`architecture.png`**: Diagrama de arquitectura del proyecto.
+4. **`stories`**: Componentes para Storybook.
+    - **`.keep`**: Archivo para mantener la carpeta `stories` en el repositorio.
+5. **`public`**: Elementos públicos de la aplicación.
+6. **`dev-dist`**: Archivos generados para el desarrollo.
+7. **`docs`**: Documentación y guías del proyecto.
+8. **Archivos de configuración**:
+   - **`babel.config.json`**: Configuración de Babel.
+   - **`tsconfig.json`**: Configuración de TypeScript.
+   - **`index.html`**: Archivo HTML principal.
+   - **`vite.config.ts`**: Configuración de Vite.
+   - **`cypress.config.ts`**: Configuración de Cypress.
+   - **`.firebaserc`**: Configuración de Firebase.
+   - **`.eslintrc.cjs`**: Configuración de ESLint.
+   - **`.npmrc`**: Configuración de npm.
+   - **`.editorconfig`**: Configuración de EditorConfig.
+   - **`package.json`**: Archivo de dependencias y scripts del proyecto.
+   - **`README.md`**: Documentación principal del proyecto.
+   - **`.gitignore`**: Archivos y carpetas ignorados por Git.
+   - **`package-lock.json`**: Archivo de dependencias lockeadas.
+   - **`.nvmrc`**: Configuración de Node Version Manager.
+   - **`commitlint.config.cjs`**: Configuración de CommitLint.
+   - **`components.json`**: Configuración de componentes.
+   - **`.browserslistrc`**: Configuración de soporte de navegadores.
 
 ---
 
 ## Arquitectura del Proyecto
 
-El proyecto utiliza una **arquitectura hexagonal** (Ports and Adapters) que separa lógica de negocio, infraestructura y interfaz de usuario. Esto facilita el mantenimiento, las pruebas y la implementación de nuevas funcionalidades.
+El proyecto utiliza una **arquitectura hexagonal** que separa la lógica de negocio, la infraestructura y la interfaz de usuario. Esto facilita el mantenimiento, las pruebas y la implementación de nuevas funcionalidades. A continuación, describimos la estructura de las carpetas del proyecto:
 
 ![Diagrama de Arquitectura](docs/architecture.png)
 
-Para una explicación completa de las carpetas y cómo interactúan las capas, consulta [docs/Arquitectura.md](docs/Arquitectura.md).
+Para una explicación completa de la estructura y las responsabilidades de cada carpeta, consulta [docs/Arquitectura.md](docs/Arquitectura.md).
 
 ---
 
-## Pruebas
+## Desarrollo
 
-El proyecto cuenta con un sistema robusto de pruebas unitarias e integradas para garantizar la calidad del código y facilitar el mantenimiento.
+### Pruebas
 
-### Pruebas Unitarias
+El proyecto incluye una amplia gama de pruebas para asegurar que la aplicación funcione correctamente y cumpla con los requisitos.
 
-Utiliza **Testing Library** para pruebas unitarias de componentes React.
-
-1. Ejecuta las pruebas unitarias:
+1. **Pruebas Unitarias**:
+   - Enfócate en pruebas unitarias para componentes y Casos de Uso.
+   - Herramienta: **Testing Library**.
 
    ```bash
    npm run test
@@ -127,21 +162,17 @@ Utiliza **Testing Library** para pruebas unitarias de componentes React.
    yarn test
    ```
 
-### Pruebas E2E
-
-Utiliza **Cypress** con **Cucumber** para pruebas end-to-end.
-
-1. Inicia el servidor de desarrollo y ejecuta las pruebas E2E:
+2. **Pruebas End-to-End (E2E)**:
+   - Utiliza **Cypress** con **Cucumber** para pruebas E2E.
+   - Herramienta: **Cypress**.
 
    ```bash
+   # Ejecutar pruebas E2E
    npm run test.e2e
    # o
    yarn test.e2e
-   ```
 
-2. Abre una interfaz interactiva para las pruebas E2E:
-
-   ```bash
+   # Abrir Cypress para ejecutar pruebas E2E
    npm run test.e2e:open
    # o
    yarn test.e2e:open
@@ -149,40 +180,23 @@ Utiliza **Cypress** con **Cucumber** para pruebas end-to-end.
 
 ### Storybook
 
-**Storybook** permite visualizar y probar componentes en aislamiento.
+Storybook proporciona una herramienta de visualización para componentes React, de modo que puedes desarrollar y probar tus componentes de forma aislada.
 
-1. Ejecuta Storybook para ver los componentes en acción:
+Para visualizar los componentes, ejecuta:
 
-   ```bash
-   npm run storybook
-   # o
-   yarn storybook
-   ```
+```bash
+npm run storybook
+# o
+yarn storybook
+```
 
----
-
-## Documentación
-
-### Arquitectura del Proyecto
-
-Consulta el [archivo de arquitectura](docs/Arquitectura.md) para obtener una explicación detallada de la estructura del proyecto y la interacción entre sus distintas capas.
-
-- **Capas**:
-  - **Infraestructura**: Implementación de puertos y configuración de integraciones externas (Firebase, Capacitor, etc.).
-  - **Dominio**: Definición de modelos y puertos.
-  - **Aplicación**: Casos de uso y lógica de negocio.
-  - **Presentación**: Componentes de la interfaz de usuario.
-  - **Interfaz de Usuario**: Integración de componentes, lógica de negocio y presentación.
-
-### Guía de Contribución
-
-Consulta el [README de contribución](docs/Contribución.md) para obtener instrucciones sobre cómo colaborar y mantener el código consistente.
+El servidor de Storybook se ejecutará en `http://localhost:6006/`.
 
 ---
 
-## Agregar Componentes Shadcn
+## Integración de Componentes Shadcn
 
-Este proyecto incluye componentes pre-configurados de [Shadcn/ui](https://ui.shadcn.com/), una biblioteca de componentes elegantes y accesibles construidos con Radix UI y Tailwind CSS.
+Este proyecto incluye componentes pre-configurados de [Shadcn/ui](https://ui.shadcn.com/), una biblioteca de componentes atractivas y accesibles construidos con Radix UI y Tailwind CSS.
 
 ### Cómo añadir componentes Shadcn
 
@@ -195,129 +209,86 @@ Este proyecto incluye componentes pre-configurados de [Shadcn/ui](https://ui.sha
 2. **Usa el componente** en tu código:
 
    ```jsx
-   import { Button } from "@components/ui/button";
-
+   import { Button } from "@/components/ui/button";
+   
    export function MyComponent() {
-     return (
-       <div className="container mx-auto py-10 px-4">
-         <Button>Click me</Button>
-       </div>
-     );
+     return <Button>Click me</Button>;
    }
    ```
 
-3. **Personaliza los componentes** editando sus archivos en `src/theme/components/lib/`.
+3. **Personaliza los componentes** editando sus archivos en `src/components/ui/`.
 
-Los componentes de Shadcn son altamente personalizables y no tienen dependencias de runtime, lo que los hace ideales para este boilerplate. Consulta la [documentación oficial de Shadcn](https://ui.shadcn.com/docs) para más detalles.
-
----
-
-## Resumen de Scripts
-
-Aquí hay una lista de los scripts disponibles en el proyecto y su descripción:
-
-- **`dev`**: Ejecuta el proyecto en modo desarrollo.
-- **`build`**: Compila el proyecto.
-- **`preview`**: Vista previa de la aplicación compilada.
-- **`test`**: Ejecuta las pruebas unitarias.
-- **`test.e2e`**: Ejecuta las pruebas end-to-end.
-- **`test.e2e:open`**: Abre una interfaz interactiva para las pruebas end-to-end.
-- **`lint`**: Ejecuta analizadores de código estático.
-- **`storybook`**: Inicia Storybook para desarrollar componentes en aislamiento.
-- **`build-storybook`**: Construye la documentación de Storybook.
-- **`type-check`**: Ejecuta el chequeo de tipos de TypeScript.
-- **`validate`**: Ejecuta el chequeo de tipos y lints.
+Los componentes Shadcn son altamente personalizables y no tienen dependencias de runtime, lo que los hace ideales para este boilerplate. Consulta la [documentación oficial de Shadcn](https://ui.shadcn.com/docs) para más detalles.
 
 ---
+
+## Configuración y Scripts
+
+El archivo `package.json` contiene diversos scripts útiles para el desarrollo y despliegue del proyecto:
+
+### Scripts
+
+- **Desarrollo**: `npm run dev` ó `yarn dev`.
+  - Ejecuta el servidor de desarrollo de Vite.
+  
+- **Construcción**: `npm run build` ó `yarn build`.
+  - Construye la aplicación para producción.
+  
+- **Vista previa**: `npm run preview` ó `yarn preview`.
+  - Vista previa de la aplicación en un entorno de producción.
+
+- **Testing**:
+  - Ejecutar pruebas unitarias: `npm run test` ó `yarn test`.
+  - Ejecutar pruebas E2E: `npm run test.e2e` ó `yarn test.e2e`.
+  - Abrir Cypress para ejecutar pruebas E2E: `npm run test.e2e:open` ó `yarn test.e2e:open`.
+
+- **Linteo**:
+  - Lintear código: `npm run lint` ó `yarn lint`.
+  - Lintear y auto-corregir código: `npm run lint:fix` ó `yarn lint:fix`.
+
+- **Storybook**:
+  - Visualizar componentes: `npm run storybook` ó `yarn storybook`.
+  - Construir Storybook para producción: `npm run build-storybook` ó `yarn build-storybook`.
+
+- **Despliegue de Storybook**: `npm run chromatic` ó `yarn chromatic`.
+
+- **Husky**:
+  - Configura precommit usando Husky: `npm prepare` ó `yarn prepare`.
+
+- **Chromatic**:
+  - Para integración continua con Chromatic: `npm install @chromatic-com/storybook`.
+  
 
 ## Contribuir al Proyecto
 
-Las contribuciones son bienvenidas. Sigue los pasos descritos en [docs/Contribución.md](docs/Contribución.md) para asegurarte de que tu contribución sea aceptada.
+Contribuciones son bienvenidas. Sigue los pasos descritos en [docs/Contribución.md](docs/Contribución.md) para asegurarte de que tu contribución sea aceptada.
 
 **Resumen de pasos para contribuir:**
 
 1. Haz un fork del repositorio.
 2. Crea una rama para tu funcionalidad o corrección.
-3. Realiza tus cambios y asegúrate de que todas las pruebas pasen.
+3. Realiza tus cambios y asegura que las pruebas pasen.
 4. Abre un Pull Request hacia la rama `main`.
 
 ---
 
 ## Recursos Adicionales
 
-- **[Documentación de React](https://es.reactjs.org/docs/getting-started.html)**: Guía oficial para empezar con React.
-- **[Vite](https://vitejs.dev/guide/)**: Documentación de Vite, el empaquetador de código.
-
-- **[Pruebas Unitarias con Testing Library](https://testing-library.com/docs/react-testing-library/intro)**: Guía para realizar pruebas unitarias en tu aplicación.
-- **[Pruebas E2E con Cypress](https://docs.cypress.io/guides/core-concepts/introduction)**: Documentación para realizar pruebas end-to-end.
-- **[Componentes Shadcn](https://ui.shadcn.com/)**: Documentación y guía para usar componentes desde Shadcn/ui.
-- **[Storybook](https://storybook.js.org/docs/react/get-started/introduction)**: Guía para trabajar con Storybook.
-- **[Arquitectura](docs/Arquitectura.md)**: Descripción detallada de la estructura y responsabilidades de cada carpeta del proyecto.
-- **[Contribución](docs/Contribución.md)**: Instrucciones para contribuir al proyecto.
-- **[Repositorio](https://github.com/psbarrales/boilerplate-react-app)**: Página oficial del repositorio.
-
----
-
-¡Gracias por utilizar **Boilerplate App**! Tu colaboración es clave para su éxito.
+- **[Guía de Contribución](docs/Contribución.md)**: Detalles sobre cómo colaborar y mantener el código consistente.
+- **[Arquitectura del Proyecto](docs/Arquitectura.md)**: Explicación detallada de la estructura y las responsabilidades de cada carpeta.
+- **Storybook**: Ejecuta `npm run storybook` para ver los componentes disponibles.
+- **Issues**: Reporta problemas, solicitudes de características y tareas pendientes en [Issues del Repositorio](https://github.com/psbarrales/boilerplate-react-app/issues).
+- **Documentación de Tailwind CSS**: [Tailwind CSS](https://tailwindcss.com/docs).
+- **Documentación de React Router**: [React Router](https://reactrouter.com/en/main).
+- **Documentación de React**: [React](https://es.reactjs.org/docs/getting-started.html).
+- **Documentación de Vite**: [Vite](https://vitejs.dev/).
+- **Documentación de Cypress**: [Cypress](https://docs.cypress.io/).
+- **Documentación de Storybook**: [Storybook](https://storybook.js.org/docs).
+- **Documentación de Shadcn/ui**: [Shadcn/ui](https://ui.shadcn.com/docs).
 
 ---
 
-## Licencia
+## Contacto
 
-Este proyecto está licenciado bajo la **MIT License**. Consulta el archivo [LICENSE](./LICENSE) para obtener más detalles.
-
----
-
-¡Excelente! Esperamos que encuentres útil este boilerplate para tus proyectos futuros. ¡No dudes en comunicarte con la comunidad y contribuir al crecimiento del repositorio! 😊
-
----
-
-**Desarrollado con ❤️ por la comunidad**
-
----
-
----
-
-¡Gracias por utilizar **Boilerplate App**! Tu colaboración es clave para su éxito.
-
----
-
-## Estructura del Proyecto
-
-La estructura del proyecto está organizada de manera que sea fácil de entender y mantener. Aquí te presentamos una descripción detallada de cada carpeta:
-
-- **`/src`**: Contiene el código fuente principal de la aplicación.
-  - **`assets`**: Archivos estáticos como imágenes y fuentes.
-  - **`components.json`**: Configuración de los componentes utilizados en el proyecto.
-  - **`domain`**: Define models, puertos y lógica de negocio.
-    - **`models`**: Entidades y interfaces del dominio.
-    - **`ports`**: Puertos de entrada y salida para interactuar con la aplicación.
-  - **`infrastructure`**: Implementación de puertos y configuración de integraciones externas.
-    - **`api`**: Implementación de puertos de API.
-    - **`capacitor`**: Adaptadores para Capacitor.
-    - **`firebase`**: Adaptadores para Firebase.
-  - **`presentation`**: Componentes de la interfaz de usuario y vistas.
-    - **`pages`**: Páginas de la aplicación.
-  - **`providers`**: Mecanismos para manejar estado y proveedores.
-  - **`routes`**: Definición de rutas y guardas de ruta.
-- **`public`**: Archivos estáticos no procesados por Webpack/Vite.
-- **`docs`**: Documentación del proyecto.
-- **`cypress`**: Configuración y pruebas end-to-end.
-- **`stories`**: Definición de historias para Storybook.
-- **Otros archivos de configuración**: `vite.config.ts`, `tsconfig.json`, `babel.config.json`, etc.
-
----
-
-## Licencia
-
-Este proyecto está licenciado bajo la **MIT License**. Consulta el archivo [LICENSE](./LICENSE) para obtener más detalles.
-
----
-
-¡Gracias por utilizar **Boilerplate App**! Tu colaboración es clave para su éxito.
-
----
-
-**Desarrollado con ❤️ por la comunidad**
-
-```
+- **GitHub**: [https://github.com/psbarrales/boilerplate-react-app](https://github.com/psbarrales/boilerplate-react-app)
+- **Autor**: Psbarrales
