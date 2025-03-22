@@ -1,5 +1,5 @@
-import { usePosts } from '@infrastructure/clients/usePostQueryClient';
 import { createProvider } from './createProvider';
+import { usePostClient } from '@infrastructure/clients/usePostQueryClient';
 import { usePostUseCase } from '@application/posts/usePostUseCase';
 
 export const {
@@ -7,7 +7,8 @@ export const {
     useProvider: usePost,
     withProvider: withPost,
 } = createProvider('post', () => {
-    return usePostUseCase({ usePosts });
-}, 'usePost debe ser usado dentro de PostProvider');
+    const postClient = usePostClient();
+    return usePostUseCase(postClient);
+}, 'usePost debe ser usado dentro de un PostProvider');
 
 export default PostProvider;
