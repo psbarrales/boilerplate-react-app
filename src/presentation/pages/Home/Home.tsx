@@ -1,6 +1,11 @@
+import { IPost } from "@domain/models/entities/IPost";
+import PostProvider, { usePost } from "@providers/PostProvider";
+import { withProvider } from "@providers/withProvider";
 import { Search } from "lucide-react";
 
 const Home: React.FC = () => {
+    const { usePosts } = usePost()
+    const { data } = usePosts();
     return (
         <div className="container mx-auto py-10 px-4">
             <div className="flex flex-col gap-8">
@@ -61,45 +66,20 @@ const Home: React.FC = () => {
                         <button className="text-blue-600 hover:text-blue-800">Ver todos</button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Artículo 1 */}
-                        <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                            <div className="h-48 bg-gray-200" style={{ backgroundImage: "url('https://via.placeholder.com/400x200')", backgroundSize: "cover" }}></div>
-                            <div className="p-4">
-                                <div className="flex justify-between mb-2">
-                                    <h3 className="font-bold text-lg">Introducción a React</h3>
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Nuevo</span>
+                        {data?.slice(0, 6).map((post: IPost) => (
+                            <div key={post.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                <div className="h-48 bg-gray-200" style={{ backgroundImage: `url('https://placehold.co/400x200')`, backgroundSize: "cover" }}></div>
+                                <div className="p-4">
+                                    <div className="flex justify-between mb-2">
+                                        <h3 className="font-bold text-lg">{post.title}</h3>
+                                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Nuevo</span>
+                                    </div>
+                                    <p className="text-gray-500 text-sm mb-2">Publicado el 15 de Junio, 2023</p>
+                                    <p className="text-gray-700 mb-4">{post.body}</p>
+                                    <button className="w-full py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">Leer más</button>
                                 </div>
-                                <p className="text-gray-500 text-sm mb-2">Publicado el 15 de Junio, 2023</p>
-                                <p className="text-gray-700 mb-4">Una guía completa para principiantes sobre cómo empezar con React.js</p>
-                                <button className="w-full py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">Leer más</button>
                             </div>
-                        </div>
-
-                        {/* Artículo 2 */}
-                        <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                            <div className="h-48 bg-gray-200" style={{ backgroundImage: "url('https://via.placeholder.com/400x200')", backgroundSize: "cover" }}></div>
-                            <div className="p-4">
-                                <div className="flex justify-between mb-2">
-                                    <h3 className="font-bold text-lg">Tailwind CSS: Pros y Contras</h3>
-                                </div>
-                                <p className="text-gray-500 text-sm mb-2">Publicado el 2 de Junio, 2023</p>
-                                <p className="text-gray-700 mb-4">Análisis detallado de las ventajas y desventajas de usar Tailwind CSS</p>
-                                <button className="w-full py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">Leer más</button>
-                            </div>
-                        </div>
-
-                        {/* Artículo 3 */}
-                        <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                            <div className="h-48 bg-gray-200" style={{ backgroundImage: "url('https://via.placeholder.com/400x200')", backgroundSize: "cover" }}></div>
-                            <div className="p-4">
-                                <div className="flex justify-between mb-2">
-                                    <h3 className="font-bold text-lg">TypeScript para Desarrolladores JavaScript</h3>
-                                </div>
-                                <p className="text-gray-500 text-sm mb-2">Publicado el 20 de Mayo, 2023</p>
-                                <p className="text-gray-700 mb-4">Cómo migrar tus conocimientos de JavaScript a TypeScript de manera efectiva</p>
-                                <button className="w-full py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">Leer más</button>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
@@ -143,4 +123,4 @@ const Home: React.FC = () => {
     );
 };
 
-export default Home;
+export default withProvider([PostProvider], Home);

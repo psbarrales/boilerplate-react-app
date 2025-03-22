@@ -6,6 +6,7 @@ import { WithErrorTrackingProvider } from "@providers/withErrorTrackingProvider"
 import { WithPreferencesStorageProvider } from "@providers/withPreferencesStorageProvider";
 import { WithPushNotificationsProvider } from "@providers/withPushNotificationProvider";
 import { WithRemoteConfigProvider } from "@providers/withRemoteConfigProvider";
+import { WithReactQueryProvider } from "./withReactQueryProvider";
 // import { withServiceWorkerProvider } from "./withServiceWorkerProvider";
 
 export const WithBooting = (children: ReactNode) => {
@@ -18,9 +19,10 @@ export const WithBooting = (children: ReactNode) => {
             WithErrorTrackingProvider,
             WithPushNotificationsProvider,
             WithPreferencesStorageProvider,
+            WithReactQueryProvider
         ),
         []
     );
 
-    return <BootedProviders>{children}</BootedProviders>;
+    return <BootedProviders>{children}</BootedProviders>
 };
