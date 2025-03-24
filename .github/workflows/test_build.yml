@@ -1,0 +1,49 @@
+name: Test & Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate code
+        run: npm run validate
+
+      - name: Add .env file for tests
+        run: echo "${{ secrets.ENV_TESTING }}" > .env
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Add .env file for build
+        run: echo "${{ secrets.ENV }}" > .env
+
+      - name: Build project
+        run: npm run build
+
+      - name: Add .env file for e2e tests
+        run: echo "${{ secrets.ENV_TESTING }}" > .env
+
+      - name: Run end-to-end tests
+        run: npm run test.e2e
+        continue-on-error: true
