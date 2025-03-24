@@ -36,7 +36,7 @@ COPY docker/entrypoint.production.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose port
-EXPOSE 5173
+EXPOSE 8080
 
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

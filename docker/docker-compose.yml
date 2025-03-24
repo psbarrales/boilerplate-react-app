@@ -19,14 +19,3 @@ services:
       - VITE_ENVIRONMENT=development
       - PORT=5173
     restart: unless-stopped
-
-  production:
-    build:
-      context: ../
-      dockerfile: docker/Dockerfile.production
-    profiles:
-      - production
-    ports:
-      - '8080:80'
-    env_file:
-      - ../.env
