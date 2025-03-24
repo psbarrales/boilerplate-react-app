@@ -1,5 +1,9 @@
 ### README.md
 
+![Build status](https://github.com/psbarrales/boilerplate-react-app/actions/workflows/test_build.yml/badge.svg) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/b0918dfa70bb40c88ba12e5777e74a20)](https://app.codacy.com/gh/psbarrales/boilerplate-react-app/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade) ![ts](https://badgen.net/badge/-/TypeScript/blue?icon=typescript&label)  
+
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white) ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+
 # Boilerplate App Template - v1.0.0
 
 Bienvenido al proyecto base para el desarrollo de aplicaciones. Este sistema está construido con **Vite**, diseñado para ser modular, escalable y mantenible. Utiliza una **arquitectura hexagonal** (Ports and Adapters) que garantiza el desacoplamiento entre capas y facilita la evolución del sistema.
@@ -12,8 +16,8 @@ Bienvenido al proyecto base para el desarrollo de aplicaciones. Este sistema est
 4. [Estructura del Proyecto](#estructura-del-proyecto)
 5. [Arquitectura del Proyecto](#arquitectura-del-proyecto)
 6. [Desarrollo](#desarrollo)
-    - [Pruebas](#pruebas)
-    - [Storybook](#storybook)
+   - [Pruebas](#pruebas)
+   - [Storybook](#storybook)
 7. [Integración de Componentes Shadcn](#integración-de-componentes-shadcn)
 8. [Recursos Adicionales](#recursos-adicionales)
 9. [Contribuir al Proyecto](#contribuir-al-proyecto)
@@ -82,20 +86,20 @@ Para trabajar en este proyecto, necesitas tener instalados los siguientes progra
 El proyecto sigue una estructura modular basada en **Arquitectura Hexagonal** (Ports and Adapters) y **Clean Architecture**. Aquí te presentamos una visión detallada de la estructura del proyecto:
 
 1. **`src`**: Contiene los archivos de la aplicación.
-    - **`application`**: Casos de uso de la aplicación.
-        - **`auth`**: Manejo de autenticación.
-        - **`user`**: Manejo de usuarios.
-    - **`domain`**: Dominio de la aplicación, incluyendo modelos, puertos de entrada y salida.
-    - **`infrastructure`**: Adaptadores para la infraestructura.
-        - **`api`**: Adaptadores para consumir APIs.
-        - **`capacitor`**: Adaptadores específicos para Capacitor.
-        - **`firebase`**: Adaptadores específicos para Firebase.
-    - **`assets`**: Archivos estáticos y recursos.
-    - **`presentation`**: Componentes de Presentación.
-    - **`routes`**: Configuración de rutas.
-    - **`theme`**: Estilos de la aplicación.
-    - **`providers`**: Proveedores de contexto.
-    - **`__test__`**: Archivos de pruebas.
+   - **`application`**: Casos de uso de la aplicación.
+     - **`auth`**: Manejo de autenticación.
+     - **`user`**: Manejo de usuarios.
+   - **`domain`**: Dominio de la aplicación, incluyendo modelos, puertos de entrada y salida.
+   - **`infrastructure`**: Adaptadores para la infraestructura.
+     - **`api`**: Adaptadores para consumir APIs.
+     - **`capacitor`**: Adaptadores específicos para Capacitor.
+     - **`firebase`**: Adaptadores específicos para Firebase.
+   - **`assets`**: Archivos estáticos y recursos.
+   - **`presentation`**: Componentes de Presentación.
+   - **`routes`**: Configuración de rutas.
+   - **`theme`**: Estilos de la aplicación.
+   - **`providers`**: Proveedores de contexto.
+   - **`__test__`**: Archivos de pruebas.
 2. **`cypress`**: Configuración para pruebas End-to-End con Cypress.
    - **`e2e`**: Archivos de pruebas Cucumber.
    - **`fixtures`**: Ficheros de datos para pruebas.
@@ -111,7 +115,7 @@ El proyecto sigue una estructura modular basada en **Arquitectura Hexagonal** (P
    - **`repo_to_markdown.py`**: Convierte información del repositorio a Markdown.
    - **`architecture.png`**: Diagrama de arquitectura del proyecto.
 4. **`stories`**: Componentes para Storybook.
-    - **`.keep`**: Archivo para mantener la carpeta `stories` en el repositorio.
+   - **`.keep`**: Archivo para mantener la carpeta `stories` en el repositorio.
 5. **`public`**: Elementos públicos de la aplicación.
 6. **`dev-dist`**: Archivos generados para el desarrollo.
 7. **`docs`**: Documentación y guías del proyecto.
@@ -153,6 +157,7 @@ Para una explicación completa de la estructura y las responsabilidades de cada 
 El proyecto incluye una amplia gama de pruebas para asegurar que la aplicación funcione correctamente y cumpla con los requisitos.
 
 1. **Pruebas Unitarias**:
+
    - Enfócate en pruebas unitarias para componentes y Casos de Uso.
    - Herramienta: **Testing Library**.
 
@@ -163,6 +168,7 @@ El proyecto incluye una amplia gama de pruebas para asegurar que la aplicación 
    ```
 
 2. **Pruebas End-to-End (E2E)**:
+
    - Utiliza **Cypress** con **Cucumber** para pruebas E2E.
    - Herramienta: **Cypress**.
 
@@ -209,8 +215,8 @@ Este proyecto incluye componentes pre-configurados de [Shadcn/ui](https://ui.sha
 2. **Usa el componente** en tu código:
 
    ```jsx
-   import { Button } from "@/components/ui/button";
-   
+   import { Button } from '@/components/ui/button';
+
    export function MyComponent() {
      return <Button>Click me</Button>;
    }
@@ -230,34 +236,36 @@ El archivo `package.json` contiene diversos scripts útiles para el desarrollo y
 
 - **Desarrollo**: `npm run dev` ó `yarn dev`.
   - Ejecuta el servidor de desarrollo de Vite.
-  
 - **Construcción**: `npm run build` ó `yarn build`.
   - Construye la aplicación para producción.
-  
 - **Vista previa**: `npm run preview` ó `yarn preview`.
+
   - Vista previa de la aplicación en un entorno de producción.
 
 - **Testing**:
+
   - Ejecutar pruebas unitarias: `npm run test` ó `yarn test`.
   - Ejecutar pruebas E2E: `npm run test.e2e` ó `yarn test.e2e`.
   - Abrir Cypress para ejecutar pruebas E2E: `npm run test.e2e:open` ó `yarn test.e2e:open`.
 
 - **Linteo**:
+
   - Lintear código: `npm run lint` ó `yarn lint`.
   - Lintear y auto-corregir código: `npm run lint:fix` ó `yarn lint:fix`.
 
 - **Storybook**:
+
   - Visualizar componentes: `npm run storybook` ó `yarn storybook`.
   - Construir Storybook para producción: `npm run build-storybook` ó `yarn build-storybook`.
 
 - **Despliegue de Storybook**: `npm run chromatic` ó `yarn chromatic`.
 
 - **Husky**:
+
   - Configura precommit usando Husky: `npm prepare` ó `yarn prepare`.
 
 - **Chromatic**:
   - Para integración continua con Chromatic: `npm install @chromatic-com/storybook`.
-  
 
 ## Contribuir al Proyecto
 
