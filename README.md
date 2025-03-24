@@ -8,6 +8,8 @@
 
 Bienvenido al proyecto base para el desarrollo de aplicaciones. Este sistema está construido con **Vite**, diseñado para ser modular, escalable y mantenible. Utiliza una **arquitectura hexagonal** (Ports and Adapters) que garantiza el desacoplamiento entre capas y facilita la evolución del sistema.
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template/3-YPmv?referralCode=__wSQ2)
+
 ## Tabla de Contenidos
 
 1. [Descripción del Proyecto](#descripción-del-proyecto)

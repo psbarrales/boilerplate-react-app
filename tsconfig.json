@@ -63,8 +63,9 @@
   },
   "include": [
     "src",
-    "cypress/**/*.ts"
-, "test/App.test.tsx"  ],
+    "cypress/**/*.ts",
+    "test/App.test.tsx"
+  ],
   "references": [
     {
       "path": "./tsconfig.node.json"
