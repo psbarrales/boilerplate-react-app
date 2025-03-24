@@ -18,7 +18,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true, // Activa el Service Worker en desarrollo
+        enabled: false, // Activa el Service Worker en desarrollo
       },
       manifest: {
         name: 'My App :: Home',
@@ -42,6 +42,7 @@ export default defineConfig({
       },
     }),
   ],
+  publicDir: 'public',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

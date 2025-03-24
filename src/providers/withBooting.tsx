@@ -7,12 +7,12 @@ import { WithPreferencesStorageProvider } from "@providers/withPreferencesStorag
 import { WithPushNotificationsProvider } from "@providers/withPushNotificationProvider";
 import { WithRemoteConfigProvider } from "@providers/withRemoteConfigProvider";
 import { WithReactQueryProvider } from "./withReactQueryProvider";
-// import { withServiceWorkerProvider } from "./withServiceWorkerProvider";
+import { WithServiceWorkerProvider } from "./withServiceWorkerProvider";
 
 export const WithBooting = (children: ReactNode) => {
     const BootedProviders = React.useMemo(
         () => composeProviders(
-            // withServiceWorkerProvider,
+            WithServiceWorkerProvider,
             WithAppProvider,
             WithRemoteConfigProvider,
             WithAnalyticsProvider,

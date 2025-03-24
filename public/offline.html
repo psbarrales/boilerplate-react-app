@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sin conexión</title>
+    <style>
+
+      :root {
+        --primary-color: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary-color: #64748b;
+        --text-color: #334155;
+        --light-color: #f8fafc;
+        --danger-color: #ef4444;
+        --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --animation-duration: 1.5s;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f1f5f9;
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.6;
+      }
+
+      .offline-container {
+        width: 100%;
+        max-width: 480px;
+        padding: 20px;
+      }
+
+      .offline-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        padding: 40px 30px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .icon-container {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background-color: #eef2ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+      }
+
+      .icon-container i {
+        font-size: 40px;
+        color: var(--primary-color);
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 10px;
+      }
+
+      p {
+        color: var(--secondary-color);
+        margin-bottom: 25px;
+        font-size: 16px;
+      }
+
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        background-color: var(--danger-color);
+        border-radius: 50%;
+        display: inline-block;
+        position: relative;
+        animation: pulse var(--animation-duration) infinite;
+      }
+
+      .status-text {
+        font-size: 14px;
+        color: var(--secondary-color);
+      }
+
+      .retry-button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .retry-button:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+
+      .retry-button:active {
+        transform: translateY(0);
+      }
+
+      .retry-button i {
+        font-size: 16px;
+      }
+
+      /* Animaciones */
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Estilos para el ícono WiFi */
+      .fa-wifi-slash::before {
+        content: '\f6ac';
+      }
+
+      /* Responsive */
+      @media (max-width: 480px) {
+        .offline-card {
+          padding: 30px 20px;
+        }
+
+        .icon-container {
+          width: 70px;
+          height: 70px;
+        }
+
+        .icon-container i {
+          font-size: 30px;
+        }
+
+        h1 {
+          font-size: 20px;
+        }
+
+        p {
+          font-size: 14px;
+        }
+      }
+
+      /* Animación de aparición */
+      .offline-card {
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="offline-container">
+      <div class="offline-card">
+        <div class="icon-container">
+          <i>X</i>
+        </div>
+        <h1>Sin conexión a Internet</h1>
+        <p>
+          No hemos podido establecer conexión con nuestros servidores. Verifica
+          tu conexión a Internet e inténtalo nuevamente.
+        </p>
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span class="status-text">Intentando reconectar...</span>
+        </div>
+        <button id="retry-button" class="retry-button">
+          <i class="fas fa-sync-alt"></i> Intentar ahora
+        </button>
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById('retry-button')
+        .addEventListener('click', function () {
+          window.location.reload();
+        });
+
+      // Intento automático de reconexión cada 30 segundos
+      let reconnectInterval;
+
+      function checkConnection() {
+        fetch('/', { method: 'HEAD', cache: 'no-store' })
+          .then(() => {
+            window.location.reload();
+          })
+          .catch(() => {
+            console.log('Todavía sin conexión...');
+          });
+      }
+
+      function startReconnectAttempts() {
+        reconnectInterval = setInterval(checkConnection, 30000);
+      }
+
+      // Iniciar intentos de reconexión
+      startReconnectAttempts();
+
+      // Limpiar intervalo cuando la página se cierra
+      window.addEventListener('beforeunload', () => {
+        clearInterval(reconnectInterval);
+      });
+    </script>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ComponentType, useRef, PropsWithChildren } from 'react';
 import { PushNotificationsPort } from '@domain/ports/out/device/PushNotificationsPort';
 import { useCapacitorPushNotificationsAdapter } from '@infrastructure/capacitor/usePushNotificationsAdapter';
-import Fallback from '@pages/Fallback';
+import RequestPrompt from '@pages/RequestPrompt';
 
 const PushNotificationsContext = createContext<PushNotificationsPort | null>(null);
 
@@ -19,7 +19,10 @@ export const WithPushNotificationsProvider: React.FC<PropsWithChildren> = ({ chi
     }, []);
 
     if (!initialized || !pushNotificationsService.current) {
-        return <Fallback />;
+        return <PushNotificationsContext.Provider value={pushNotificationsService.current} >
+            <RequestPrompt title='Permisos de notificación' message='Por favor, habilita las notificaciones para continuar.' />
+            {children}
+        </PushNotificationsContext.Provider>;
     }
 
     return (

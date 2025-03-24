@@ -14,6 +14,7 @@ services:
       - ./entrypoint.sh:/usr/local/bin/entrypoint.sh
       - ./../index.html:/app/index.html
       - ./../package.json:/app/package.json
+      - ./../vite.config.ts:/app/vite.config.ts
     env_file:
       - ../.env
     environment:
