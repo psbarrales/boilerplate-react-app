@@ -11,6 +11,7 @@
 # production
 /dist
 /dev-dist
+/docs/repo.md
 
 # misc
 .DS_Store

@@ -3,7 +3,7 @@ import { ComponentType, createContext, ReactNode, useContext, useState } from 'r
 const ExampleSimpleContext = createContext<any | null>(null);
 
 export const ExampleSimpleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [useCase, _] = useState()
+    const [useCase, ] = useState()
 
     return (
         <ExampleSimpleContext.Provider value={useCase}>

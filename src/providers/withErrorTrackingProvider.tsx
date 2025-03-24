@@ -1,21 +1,19 @@
-import React, { createContext, ReactNode, useContext, useState, useEffect, ComponentType, useRef } from "react";
+import React, { createContext, useContext, useState, useEffect, ComponentType, useRef, PropsWithChildren } from "react";
 import { ErrorTrackingPort } from "@domain/ports/out/analytics/ErrorTrackingPort";
 import { useFirebaseErrorTrackingAdapter } from "@infrastructure/firebase/useFirebaseErrorTrackingAdapter";
+import Fallback from "@pages/Fallback";
 
 const ErrorTrackingContext = createContext<ErrorTrackingPort | null>(null);
 
 // Inicializa el servicio con Firebase Adapter
-const createFirebaseErrorTrackingService = (): ErrorTrackingPort => {
-    return useFirebaseErrorTrackingAdapter();
-};
-
-export const withErrorTrackingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const errorTrackingService = useRef<ErrorTrackingPort>(createFirebaseErrorTrackingService());
+export const WithErrorTrackingProvider: React.FC<PropsWithChildren> = ({ children }) => {
+    const errorTrackingService = useRef<ErrorTrackingPort>(useFirebaseErrorTrackingAdapter());
     const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
         const initializeErrorTracking = async () => {
             setInitialized(true);
+            // FIXME: Loop infinito cuando hay errores
             // window.onerror = (message, source, lineno, colno, error) => {
             //     try {
             //         errorTrackingService.current.recordError(JSON.stringify(error));
@@ -39,7 +37,7 @@ export const withErrorTrackingProvider: React.FC<{ children: ReactNode }> = ({ c
     }, []);
 
     if (!initialized || !errorTrackingService.current) {
-        return <div>Espere...</div>;
+        return <Fallback />;
     }
 
     return (

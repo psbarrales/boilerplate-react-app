@@ -1,8 +1,8 @@
-import React, { createContext, ReactNode, useEffect, useState } from "react";
+import React, { createContext, PropsWithChildren, useEffect, useState } from "react";
 
 const ServiceWorkerContext = createContext<boolean>(false);
 
-export const withServiceWorkerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const WithServiceWorkerProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [isServiceWorkerAvailable, setIsServiceWorkerAvailable] = useState(false);
 
     useEffect(() => {
@@ -13,7 +13,7 @@ export const withServiceWorkerProvider: React.FC<{ children: ReactNode }> = ({ c
             }
             navigator.serviceWorker.register('/service-worker.js')
                 .then(() => {
-                    console.log('Service Worker registrado con éxito.');
+                    console.info('Service Worker registrado con éxito.');
                     setIsServiceWorkerAvailable(true);
                 })
                 .catch((error) => {
@@ -25,9 +25,9 @@ export const withServiceWorkerProvider: React.FC<{ children: ReactNode }> = ({ c
         }
     }, []);
 
-    if (!isServiceWorkerAvailable) {
-        return <div>Espere...</div>;
-    }
+    // if (!isServiceWorkerAvailable) {
+    //     return <PageLoading />;
+    // }
 
     return (
         <ServiceWorkerContext.Provider value={isServiceWorkerAvailable}>

@@ -19,7 +19,7 @@ const getRemoteConfig = () => {
 // Mock getValueFromFirebase function
 const getValueFromFirebase = () => {
     return {
-        asString: () => JSON.stringify({ key1: "value1", key2: "value2" }) // Mock remote config values
+        asString: () => JSON.stringify({ key1: "value1", key2: "value2" }), // Mock remote config values
     };
 };
 
@@ -39,11 +39,13 @@ export const useFirebaseRemoteConfigAdapter = (): RemoteConfigPort => {
                 .then(() => {
                     isInitializedRef.current = true;
                     const remoteConfigValue = getValueFromFirebase();
-                    configRef.current = JSON.parse(remoteConfigValue.asString());
-                    console.debug('Remote config values fetched and activated');
+                    configRef.current = JSON.parse(
+                        remoteConfigValue.asString()
+                    );
+                    console.info("Remote config values fetched and activated");
                 })
                 .catch((err) => {
-                    console.error('Error fetching remote config values', err);
+                    console.error("Error fetching remote config values", err);
                 });
         }
     }, []);
@@ -51,16 +53,22 @@ export const useFirebaseRemoteConfigAdapter = (): RemoteConfigPort => {
     // Methods to interact with remote config
     const getAll = () => {
         if (!isInitializedRef.current) {
-            console.warn('RemoteConfig is not initialized yet. Waiting...', remoteConfigRef.current);
-            throw new Error('RemoteConfig is not initialized yet. Waiting...');
+            console.warn(
+                "RemoteConfig is not initialized yet. Waiting...",
+                remoteConfigRef.current
+            );
+            throw new Error("RemoteConfig is not initialized yet. Waiting...");
         }
         return configRef.current;
     };
 
     const getValue = (key: string): any => {
         if (!isInitializedRef.current) {
-            console.warn('RemoteConfig is not initialized yet. Waiting...', remoteConfigRef.current);
-            throw new Error('RemoteConfig is not initialized yet. Waiting...');
+            console.warn(
+                "RemoteConfig is not initialized yet. Waiting...",
+                remoteConfigRef.current
+            );
+            throw new Error("RemoteConfig is not initialized yet. Waiting...");
         }
         return configRef.current[key];
     };
@@ -71,13 +79,14 @@ export const useFirebaseRemoteConfigAdapter = (): RemoteConfigPort => {
             raw = getValue(key);
         } catch (error) {
             raw = defaultValue?.toString();
+            console.warn("Error getting value", error);
         }
 
         if (raw) {
             return Number(raw);
         }
 
-        if (typeof defaultValue !== 'undefined') {
+        if (typeof defaultValue !== "undefined") {
             return defaultValue;
         }
 
@@ -90,13 +99,14 @@ export const useFirebaseRemoteConfigAdapter = (): RemoteConfigPort => {
             raw = getValue(key);
         } catch (error) {
             raw = defaultValue?.toString();
+            console.warn("Error getting value", error);
         }
 
-        if (raw && ['true', 'false'].includes(raw)) {
-            return raw === 'true';
+        if (raw && ["true", "false"].includes(raw)) {
+            return raw === "true";
         }
 
-        if (typeof defaultValue !== 'undefined') {
+        if (typeof defaultValue !== "undefined") {
             return defaultValue;
         }
 

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { IUser, IUserRole } from "@domain/models/entities/IUser";
-import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
 import { UserServicePort } from "@domain/ports/out/api/UserServicePort";
 import { IAuthorizationPort } from "@domain/ports/in/IAuthorizationPort";
 import { IUserPort } from "@domain/ports/in/IUserPort";

@@ -1,12 +1,12 @@
 import { composeProviders } from '@providers/composeProvider';
-import { withBooting } from '@providers/withBooting';
+import { WithBooting } from '@providers/withBooting';
 import { AuthProvider } from '@providers/AuthProvider';
 import { RouterProvider } from 'react-router-dom';
 import { UserProvider } from '@providers/UserProvider';
 import router from '@routes/index'
 import React, { ReactNode } from 'react';
 
-const withAutorization = (children: ReactNode) => {
+const WithAutorization = (children: ReactNode) => {
     const Providers = React.useMemo(
         () => composeProviders(AuthProvider, UserProvider),
         []
@@ -15,8 +15,8 @@ const withAutorization = (children: ReactNode) => {
     return <Providers>{children}</Providers>;
 };
 
-const App: React.FC = React.memo(() => withBooting(
-    withAutorization(
+const App: React.FC = React.memo(() => WithBooting(
+    WithAutorization(
         <RouterProvider router={router} />
     )
 ));

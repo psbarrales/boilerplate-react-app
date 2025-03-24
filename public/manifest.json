@@ -1,6 +1,6 @@
 {
-  "short_name": "Ionic App",
-  "name": "My Ionic App",
+  "short_name": "My App :: Home",
+  "name": "My App :: Home",
   "icons": [
     {
       "src": "favicon.png",

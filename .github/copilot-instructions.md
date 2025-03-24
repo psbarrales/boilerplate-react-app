@@ -73,19 +73,19 @@ domain/
 // src/domain/models/entities/IUser.ts
 
 export interface IUser {
-  id: string;
-  full_name: string;
-  email: string;
-  last_name?: string;
-  avatar?: string;
-  phone?: string;
-  gender?: string;
-  birthday?: Date;
-  meta_data?: Record<string, any>;
-  permissions?: Record<string, unknown>;
+    id: string;
+    full_name: string;
+    email: string;
+    last_name?: string;
+    avatar?: string;
+    phone?: string;
+    gender?: string;
+    birthday?: Date;
+    meta_data?: Record<string, any>;
+    permissions?: Record<string, unknown>;
 }
 
-export type IUserRole = 'INVITED' | 'USER' | 'ADMIN' | 'INVALID';
+export type IUserRole = 'INVITED' | 'USER' | 'ADMIN' | 'INVALID'
 ```
 
 2. **Definición de un Puerto de Autorización (`AuthorizationServicePort.ts`):**
@@ -93,14 +93,14 @@ export type IUserRole = 'INVITED' | 'USER' | 'ADMIN' | 'INVALID';
 ```typescript
 // src/domain/ports/out/api/AuthorizationServicePort.ts
 
-import { IJwt } from '@domain/models/entities/IJwt';
+import { IJwt } from "@domain/models/entities/IJwt";
 
 export interface AuthorizationServicePort {
-  registerInvite(): Promise<IJwt>;
-  registerEmail(email: string): Promise<any>;
-  checkCode(code: string, email: string): Promise<IJwt>;
-  login(user: string, pass: string): Promise<any>;
-  logout(): Promise<void>;
+    registerInvite(): Promise<IJwt>
+    registerEmail(email: string): Promise<any>
+    checkCode(code: string, email: string): Promise<IJwt>
+    login(user: string, pass: string): Promise<any>
+    logout(): Promise<void>
 }
 ```
 
@@ -131,124 +131,109 @@ application/
 
 import jwt from 'jsonwebtoken';
 import { useState, useCallback, useEffect } from 'react';
-import { AuthorizationServicePort } from '@domain/ports/out/api/AuthorizationServicePort';
-import { PreferencesStoragePort } from '@domain/ports/out/app/PreferencesStoragePort';
+import { AuthorizationServicePort } from "@domain/ports/out/api/AuthorizationServicePort";
+import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
 import { IJwt } from '@domain/models/entities/IJwt';
 import { IJwtDecode } from '@domain/models/entities/IJwtDecode';
-import {
-  FlowType,
-  IAuthorizationPort,
-} from '@domain/ports/in/IAuthorizationPort';
+import { FlowType, IAuthorizationPort } from '@domain/ports/in/IAuthorizationPort';
 
-export const useAuthorizationUseCase = (
-  api: AuthorizationServicePort,
-  storage: PreferencesStoragePort
-): IAuthorizationPort => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isReady, setIsReady] = useState<boolean>(false);
-  const [token, setToken] = useState<string>();
-  const [tokenDecoded, setTokenDecode] = useState<IJwtDecode>();
+export const useAuthorizationUseCase = (api: AuthorizationServicePort, storage: PreferencesStoragePort): IAuthorizationPort => {
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [isReady, setIsReady] = useState<boolean>(false);
+    const [token, setToken] = useState<string>();
+    const [tokenDecoded, setTokenDecode] = useState<IJwtDecode>();
 
-  useEffect(() => {
-    getToken();
-  }, [storage]);
+    useEffect(() => {
+        getToken()
+    }, [storage])
 
-  useEffect(() => {
-    if (token) {
-      setTokenDecode(decodeToken(token));
-      setIsAuthenticated(true);
-      setIsReady(true);
-      saveToken(token);
-    } else if (isReady) {
-      setIsAuthenticated(false);
-      setTokenDecode(undefined);
-      removeToken();
+    useEffect(() => {
+        if (token) {
+            setTokenDecode(decodeToken(token))
+            setIsAuthenticated(true);
+            setIsReady(true)
+            saveToken(token)
+        } else if (isReady) {
+            setIsAuthenticated(false);
+            setTokenDecode(undefined)
+            removeToken()
+        }
+    }, [token])
+
+    const decodeToken = (token: string) => {
+        return jwt.decode(token) as IJwtDecode
     }
-  }, [token]);
 
-  const decodeToken = (token: string) => {
-    return jwt.decode(token) as IJwtDecode;
-  };
-
-  const getToken = async () => {
-    const currentToken = await storage.get('@token');
-    if (currentToken) {
-      setToken(currentToken);
-      return;
+    const getToken = async () => {
+        const currentToken = await storage.get('@token')
+        if (currentToken) {
+            setToken(currentToken)
+            return
+        }
+        setIsReady(true)
     }
-    setIsReady(true);
-  };
 
-  const saveToken = async (token: string) => {
-    if (token) {
-      await storage.set('@token', token);
+    const saveToken = async (token: string) => {
+        if (token) {
+            await storage.set('@token', token)
+        }
     }
-  };
-  const removeToken = async () => {
-    await storage.remove('@token');
-  };
+    const removeToken = async () => {
+        await storage.remove('@token')
+    }
 
-  const register = useCallback(
-    async (flow: FlowType, param?: any) => {
-      switch (flow) {
-        case 'INVITE':
-          setIsAuthenticated(false);
-          const response: IJwt = await api.registerInvite();
-          setToken(response.access_token);
-          return response;
-        case 'EMAIL':
-          setIsAuthenticated(false);
-          const email = param;
-          const response = await api.registerEmail(email);
-          return response;
-        default:
-          setIsAuthenticated(false);
-          setToken(undefined);
-          return;
-      }
-    },
-    [api]
-  );
+    const register = useCallback(async (flow: FlowType, param?: any) => {
+        switch (flow) {
+            case 'INVITE':
+                setIsAuthenticated(false)
+                const response: IJwt = await api.registerInvite()
+                setToken(response.access_token)
+                return response
+            case 'EMAIL':
+                setIsAuthenticated(false)
+                const email = param
+                const response = await api.registerEmail(email)
+                return response
+            default:
+                setIsAuthenticated(false)
+                setToken(undefined)
+                return
+        }
+    }, [api])
 
-  const checkCode = useCallback(
-    async (code: string, email: string) => {
-      setIsAuthenticated(false);
-      const response: IJwt = await api.checkCode(code, email);
-      setToken(response.access_token);
-    },
-    [api]
-  );
+    const checkCode = useCallback(async (code: string, email: string) => {
+        setIsAuthenticated(false)
+        const response: IJwt = await api.checkCode(code, email)
+        setToken(response.access_token)
+    }, [api])
 
-  const login = useCallback(
-    async (user: string, pass: string) => {
-      const response = await api.login(user, pass);
-      if (response.status === 200) {
-        const body = response.body;
-        setIsAuthenticated(true);
-        return;
-      }
-      setIsAuthenticated(false);
-    },
-    [api]
-  );
+    const login = useCallback(async (user: string, pass: string) => {
+        const response = await api.login(user, pass);
+        if (response.status === 200) {
+            const body = response.body;
+            setIsAuthenticated(true);
+            return
+        }
+        setIsAuthenticated(false);
+    }, [api]);
 
-  const logout = useCallback(async () => {
-    try {
-      // await api.logout();
-      setToken(undefined);
-    } catch (e) {}
-  }, [api]);
+    const logout = useCallback(async () => {
+        try {
+            // await api.logout();
+            setToken(undefined)
+        } catch (e) { }
+    }, [api])
 
-  return {
-    register,
-    checkCode,
-    login,
-    logout,
-    isAuthenticated,
-    isReady,
-    tokenDecoded,
-    token,
-  };
+    return {
+        register,
+        checkCode,
+        login,
+        logout,
+        isAuthenticated,
+        isReady,
+        tokenDecoded,
+        token
+    };
 };
 ```
 
@@ -257,69 +242,69 @@ export const useAuthorizationUseCase = (
 ```typescript
 // src/application/user/useUserUseCase.ts
 
-import { useCallback, useEffect, useState } from 'react';
-import { IUser, IUserRole } from '@domain/models/entities/IUser';
-import { PreferencesStoragePort } from '@domain/ports/out/app/PreferencesStoragePort';
-import { UserServicePort } from '@domain/ports/out/api/UserServicePort';
-import { IAuthorizationPort } from '@domain/ports/in/IAuthorizationPort';
-import { IUserPort } from '@domain/ports/in/IUserPort';
+import { useCallback, useEffect, useState } from "react";
+import { IUser, IUserRole } from "@domain/models/entities/IUser";
+import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
+import { UserServicePort } from "@domain/ports/out/api/UserServicePort";
+import { IAuthorizationPort } from "@domain/ports/in/IAuthorizationPort";
+import { IUserPort } from "@domain/ports/in/IUserPort";
 
-export const useUserUseCase = (
-  api: UserServicePort,
-  auth: IAuthorizationPort
-): IUserPort => {
-  const [user, setUser] = useState<IUser>();
-  const [role, setRole] = useState<IUserRole>();
+export const useUserUseCase =
+    (api: UserServicePort, auth: IAuthorizationPort):
+        IUserPort => {
+        const [user, setUser] = useState<IUser>()
+        const [role, setRole] = useState<IUserRole>()
 
-  useEffect(() => {
-    if (!auth.isAuthenticated || !auth.tokenDecoded) return clear();
-    const tokenDecoded = auth.tokenDecoded;
-    setRole(getRoleFrom(tokenDecoded.scope, tokenDecoded.email));
-  }, [auth.isAuthenticated, auth.tokenDecoded]);
+        useEffect(() => {
+            if (!auth.isAuthenticated || !auth.tokenDecoded) return clear()
+            const tokenDecoded = auth.tokenDecoded
+            setRole(getRoleFrom(tokenDecoded.scope, tokenDecoded.email))
+        }, [auth.isAuthenticated, auth.tokenDecoded])
 
-  useEffect(() => {
-    if (role && role === 'USER' && !user) {
-      me();
+        useEffect(() => {
+            if (role && role === 'USER' && !user) {
+                me()
+            }
+        }, [role, user])
+
+        const getRoleFrom = (scope: string, email: string): IUserRole => {
+            if (email.toLowerCase() === 'invited') {
+                return 'INVITED';
+            }
+            if (scope.includes('user')) {
+                return 'USER';
+            }
+            if (scope.includes(':admin')) {
+                return 'ADMIN';
+            }
+            return 'INVALID';
+        };
+
+        const clear = useCallback(() => {
+            setRole(undefined);
+            setUser(undefined);
+        }, []);
+
+        const me = useCallback(async () => {
+            try {
+                if (!auth.isAuthenticated) return
+                const userInfo = await api.me()
+                setUser(userInfo)
+            } catch (err) {
+                if ((err as any).status === 401) {
+                    auth.logout()
+                }
+            }
+        }, [api, auth.isAuthenticated])
+
+        return {
+            user,
+            role,
+            me
+        }
     }
-  }, [role, user]);
-
-  const getRoleFrom = (scope: string, email: string): IUserRole => {
-    if (email.toLowerCase() === 'invited') {
-      return 'INVITED';
-    }
-    if (scope.includes('user')) {
-      return 'USER';
-    }
-    if (scope.includes(':admin')) {
-      return 'ADMIN';
-    }
-    return 'INVALID';
-  };
-
-  const clear = useCallback(() => {
-    setRole(undefined);
-    setUser(undefined);
-  }, []);
-
-  const me = useCallback(async () => {
-    try {
-      if (!auth.isAuthenticated) return;
-      const userInfo = await api.me();
-      setUser(userInfo);
-    } catch (err) {
-      if ((err as any).status === 401) {
-        auth.logout();
-      }
-    }
-  }, [api, auth.isAuthenticated]);
-
-  return {
-    user,
-    role,
-    me,
-  };
-};
 ```
+
 
 ### 2.3. `infrastructure/`
 
@@ -358,103 +343,86 @@ infrastructure/
 // src/infrastructure/api/useAxiosHTTPClient.ts
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import {
-  HTTPRequest,
-  HTTPResponse,
-  HTTPService,
-} from '@domain/ports/out/api/HTTPService';
+import { HTTPRequest, HTTPResponse, HTTPService } from '@domain/ports/out/api/HTTPService';
 import { useCallback, useRef } from 'react';
-import { merge } from 'lodash';
+import { merge } from 'lodash'
 
-export const useAxiosHTTPClient = (
-  config?: Partial<HTTPRequest<any>>
-): HTTPService => {
-  const httpConfigRef = useRef(mapToAxiosConfig(config || {}));
-  const axiosInstanceRef = useRef<AxiosInstance>(
-    axios.create(httpConfigRef.current)
-  );
+export const useAxiosHTTPClient = (config?: Partial<HTTPRequest<any>>): HTTPService => {
+    const httpConfigRef = useRef(mapToAxiosConfig(config || {}));
+    const axiosInstanceRef = useRef<AxiosInstance>(axios.create(httpConfigRef.current));
 
-  const setConfig = useCallback((config: Partial<HTTPRequest<any>>) => {
-    httpConfigRef.current = mapToAxiosConfig(
-      merge(httpConfigRef.current, config)
-    );
-    axiosInstanceRef.current = axios.create(httpConfigRef.current);
-  }, []);
+    const setConfig = useCallback((config: Partial<HTTPRequest<any>>) => {
+        httpConfigRef.current = mapToAxiosConfig(merge(httpConfigRef.current, config));
+        axiosInstanceRef.current = axios.create(httpConfigRef.current);
+    }, []);
 
-  const request = useCallback(
-    async <T>(config: HTTPRequest<T>): Promise<HTTPResponse<T>> => {
-      const axiosConfig = mapToAxiosConfig(
-        merge(httpConfigRef.current, config)
-      );
+    const request = useCallback(async <T>(config: HTTPRequest<T>): Promise<HTTPResponse<T>> => {
+        const axiosConfig = mapToAxiosConfig(merge(httpConfigRef.current, config));
 
-      try {
-        const response: AxiosResponse<T> = await axiosInstanceRef.current(
-          axiosConfig
-        );
+        try {
+            const response: AxiosResponse<T> = await axiosInstanceRef.current(axiosConfig);
 
-        return {
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-          headers: convertHeaders(response.headers),
-          config,
-          request: response.request,
-        };
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-          throw {
-            data: error.response.data,
-            status: error.response.status,
-            statusText: error.response.statusText,
-            headers: convertHeaders(error.response.headers),
-            config,
-            request: error.request,
-          };
-        } else {
-          console.error('useAxiosHTTPClient Error:', error);
-          throw {
-            type: 'UnexpectedError',
-            message: error instanceof Error ? error.message : 'Unknown error',
-            originalError: error,
-          };
+            return {
+                data: response.data,
+                status: response.status,
+                statusText: response.statusText,
+                headers: convertHeaders(response.headers),
+                config,
+                request: response.request,
+            };
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                throw {
+                    data: error.response.data,
+                    status: error.response.status,
+                    statusText: error.response.statusText,
+                    headers: convertHeaders(error.response.headers),
+                    config,
+                    request: error.request,
+                };
+            } else {
+                console.error('useAxiosHTTPClient Error:', error);
+                throw {
+                    type: 'UnexpectedError',
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    originalError: error,
+                };
+            }
         }
-      }
-    },
-    []
-  );
+    }, []);
 
-  function mapToAxiosConfig<T>(
-    config: Partial<HTTPRequest<T>>
-  ): AxiosRequestConfig {
-    return {
-      baseURL: config.baseURL || undefined,
-      method: config.method || 'GET',
-      url: config.url,
-      headers: config.headers,
-      data: config.body,
-      params: config.query || config.params,
-      responseType: config.responseType || 'json',
-      timeout: config.timeout,
-      withCredentials: config.withCredentials,
-      transformRequest: config.transformRequest,
-      transformResponse: config.transformResponse,
-    };
-  }
-
-  function convertHeaders(headers: any): Record<string, string> {
-    const result: Record<string, string> = {};
-    if (headers) {
-      Object.keys(headers).forEach((key) => {
-        result[key] = headers[key] as string;
-      });
+    function mapToAxiosConfig<T>(
+        config: Partial<HTTPRequest<T>>
+    ): AxiosRequestConfig {
+        return {
+            baseURL: config.baseURL || undefined,
+            method: config.method || 'GET',
+            url: config.url,
+            headers: config.headers,
+            data: config.body,
+            params: config.query || config.params,
+            responseType: config.responseType || 'json',
+            timeout: config.timeout,
+            withCredentials: config.withCredentials,
+            transformRequest: config.transformRequest,
+            transformResponse: config.transformResponse,
+        };
     }
-    return result;
-  }
 
-  return {
-    setConfig,
-    request,
-  };
+    function convertHeaders(headers: any): Record<string, string> {
+        const result: Record<string, string> = {};
+        if (headers) {
+            Object.keys(headers).forEach((key) => {
+                result[key] = headers[key] as string;
+            });
+        }
+        return result;
+    }
+
+    return {
+        setConfig,
+        request,
+    };
 };
 ```
 
@@ -468,82 +436,71 @@ import { HTTPService } from '@domain/ports/out/api/HTTPService';
 import { AuthorizationServicePort } from '@domain/ports/out/api/AuthorizationServicePort';
 import { IJwt } from '@domain/models/entities/IJwt';
 
-export const useAuthorizationAPIClient = (
-  httpService: HTTPService
-): AuthorizationServicePort => {
-  const httpServiceRef = useRef(httpService);
+export const useAuthorizationAPIClient = (httpService: HTTPService): AuthorizationServicePort => {
+    const httpServiceRef = useRef(httpService);
 
-  useEffect(() => {
-    httpServiceRef.current.setConfig({
-      baseURL: import.meta.env.VITE_API_ENDPOINT,
-    });
-  }, []);
+    useEffect(() => {
+        httpServiceRef.current.setConfig({
+            baseURL: import.meta.env.VITE_API_ENDPOINT,
+        });
+    }, []);
 
-  const registerInvite = useCallback(async () => {
-    const response = await httpServiceRef.current.request({
-      url: '/register/invite',
-      responseType: 'json',
-    });
-    return response.data as IJwt;
-  }, [httpService]);
+    const registerInvite = useCallback(async () => {
+        const response = await httpServiceRef.current.request({
+            url: '/register/invite',
+            responseType: 'json',
+        })
+        return response.data as IJwt
+    }, [httpService])
 
-  const registerEmail = useCallback(
-    async (email: string) => {
-      const response = await httpServiceRef.current.request({
-        method: 'POST',
-        url: '/register',
-        responseType: 'json',
-        body: { full_name: '', phone: '', email: email, code: '' },
-      });
-      return response.data;
-    },
-    [httpService]
-  );
+    const registerEmail = useCallback(async (email: string) => {
+        const response = await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/register',
+            responseType: 'json',
+            body: { "full_name": "", "phone": "", "email": email, "code": "" }
+        })
+        return response.data
+    }, [httpService])
 
-  const checkCode = useCallback(
-    async (code: string, email: string): Promise<IJwt> => {
-      const response = await httpServiceRef.current.request({
-        method: 'POST',
-        url: '/register/check-code',
-        responseType: 'json',
-        body: { email: email, full_name: '-', phone: '', code: code },
-      });
-      return response.data as IJwt;
-    },
-    [httpService]
-  );
-  /**
-   * Inicia sesión con las credenciales proporcionadas.
-   * @param user Nombre de usuario o email.
-   * @param pass Contraseña.
-   * @returns Una promesa que se resuelve con los datos de la sesión.
-   */
-  const login = useCallback(
-    async (user: string, pass: string): Promise<any> => {
-      const response = await httpServiceRef.current.request({
-        method: 'POST',
-        url: '/auth/login',
-        body: { user, pass },
-        responseType: 'json',
-      });
-      return response.data;
-    },
-    []
-  );
+    const checkCode = useCallback(async (code: string, email: string): Promise<IJwt> => {
+        const response = await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/register/check-code',
+            responseType: 'json',
+            body: { "email": email, "full_name": "-", "phone": "", "code": code }
+        })
+        return response.data as IJwt
+    }, [httpService])
+    /**
+     * Inicia sesión con las credenciales proporcionadas.
+     * @param user Nombre de usuario o email.
+     * @param pass Contraseña.
+     * @returns Una promesa que se resuelve con los datos de la sesión.
+     */
+    const login = useCallback(async (user: string, pass: string): Promise<any> => {
+        const response = await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/auth/login',
+            body: { user, pass },
+            responseType: 'json',
+        });
+        return response.data;
+    }, []);
 
-  /**
-   * Cierra sesión.
-   * @returns Una promesa que se resuelve al completar la operación.
-   */
-  const logout = useCallback(async (): Promise<void> => {
-    await httpServiceRef.current.request({
-      method: 'POST',
-      url: '/auth/logout',
-      responseType: 'json',
-    });
-  }, []);
+    /**
+     * Cierra sesión.
+     * @returns Una promesa que se resuelve al completar la operación.
+     */
+    const logout = useCallback(async (): Promise<void> => {
+        await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/auth/logout',
+            responseType: 'json',
+        });
+    }, []);
 
-  return { registerInvite, registerEmail, checkCode, login, logout };
+    return { registerInvite, registerEmail, checkCode, login, logout };
 };
 ```
 
@@ -574,126 +531,112 @@ application/
 
 import jwt from 'jsonwebtoken';
 import { useState, useCallback, useEffect } from 'react';
-import { AuthorizationServicePort } from '@domain/ports/out/api/AuthorizationServicePort';
-import { PreferencesStoragePort } from '@domain/ports/out/app/PreferencesStoragePort';
+import { AuthorizationServicePort } from "@domain/ports/out/api/AuthorizationServicePort";
+import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
 import { IJwt } from '@domain/models/entities/IJwt';
 import { IJwtDecode } from '@domain/models/entities/IJwtDecode';
-import {
-  FlowType,
-  IAuthorizationPort,
-} from '@domain/ports/in/IAuthorizationPort';
+import { FlowType, IAuthorizationPort } from '@domain/ports/in/IAuthorizationPort';
 
-export const useAuthorizationUseCase = (
-  api: AuthorizationServicePort,
-  storage: PreferencesStoragePort
-): IAuthorizationPort => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isReady, setIsReady] = useState<boolean>(false);
-  const [token, setToken] = useState<string>();
-  const [tokenDecoded, setTokenDecode] = useState<IJwtDecode>();
+export const useAuthorizationUseCase = (api: AuthorizationServicePort, storage: PreferencesStoragePort): IAuthorizationPort => {
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [isReady, setIsReady] = useState<boolean>(false);
+    const [token, setToken] = useState<string>();
+    const [tokenDecoded, setTokenDecode] = useState<IJwtDecode>();
 
-  useEffect(() => {
-    getToken();
-  }, [storage]);
+    useEffect(() => {
+        getToken()
+    }, [storage])
 
-  // Actualizar token y tokenDecode
-  useEffect(() => {
-    if (token) {
-      setTokenDecode(decodeToken(token));
-      setIsAuthenticated(true);
-      setIsReady(true);
-      saveToken(token);
-    } else if (isReady) {
-      setIsAuthenticated(false);
-      setTokenDecode(undefined);
-      removeToken();
+    // Actualizar token y tokenDecode
+    useEffect(() => {
+        if (token) {
+            setTokenDecode(decodeToken(token))
+            setIsAuthenticated(true);
+            setIsReady(true)
+            saveToken(token)
+        } else if (isReady) {
+            setIsAuthenticated(false);
+            setTokenDecode(undefined)
+            removeToken()
+        }
+
+    }, [token])
+
+    const decodeToken = (token: string) => {
+        return jwt.decode(token) as IJwtDecode
     }
-  }, [token]);
 
-  const decodeToken = (token: string) => {
-    return jwt.decode(token) as IJwtDecode;
-  };
-
-  const getToken = async () => {
-    const currentToken = await storage.get('@token');
-    if (currentToken) {
-      setToken(currentToken);
-      return;
+    const getToken = async () => {
+        const currentToken = await storage.get('@token')
+        if (currentToken) {
+            setToken(currentToken)
+            return
+        }
+        setIsReady(true)
     }
-    setIsReady(true);
-  };
 
-  const saveToken = async (token: string) => {
-    if (token) {
-      await storage.set('@token', token);
+    const saveToken = async (token: string) => {
+        if (token) {
+            await storage.set('@token', token)
+        }
     }
-  };
-  const removeToken = async () => {
-    await storage.remove('@token');
-  };
+    const removeToken = async () => {
+        await storage.remove('@token')
+    }
 
-  const register = useCallback(
-    async (flow: FlowType, param?: any) => {
-      switch (flow) {
-        case 'INVITE':
-          setIsAuthenticated(false);
-          const response: IJwt = await api.registerInvite();
-          setToken(response.access_token);
-          return response;
-        case 'EMAIL':
-          setIsAuthenticated(false);
-          const email = param;
-          const response = await api.registerEmail(email);
-          return response;
-        default:
-          setIsAuthenticated(false);
-          setToken(undefined);
-          return;
-      }
-    },
-    [api]
-  );
+    const register = useCallback(async (flow: FlowType, param?: any) => {
+        switch (flow) {
+            case 'INVITE':
+                setIsAuthenticated(false)
+                const response: IJwt = await api.registerInvite()
+                setToken(response.access_token)
+                return response
+            case 'EMAIL':
+                setIsAuthenticated(false)
+                const email = param
+                const response = await api.registerEmail(email)
+                return response
+            default:
+                setIsAuthenticated(false)
+                setToken(undefined)
+                return
+        }
+    }, [api])
 
-  const checkCode = useCallback(
-    async (code: string, email: string) => {
-      setIsAuthenticated(false);
-      const response: IJwt = await api.checkCode(code, email);
-      setToken(response.access_token);
-    },
-    [api]
-  );
+    const checkCode = useCallback(async (code: string, email: string) => {
+        setIsAuthenticated(false)
+        const response: IJwt = await api.checkCode(code, email)
+        setToken(response.access_token)
+    }, [api])
 
-  const login = useCallback(
-    async (user: string, pass: string) => {
-      const response = await api.login(user, pass);
+    const login = useCallback(async (user: string, pass: string) => {
+        const response = await api.login(user, pass);
 
-      if (response.status === 200) {
-        const body = response.body;
-        setIsAuthenticated(true);
-        return;
-      }
-      setIsAuthenticated(false);
-    },
-    [api]
-  );
+        if (response.status === 200) {
+            const body = response.body;
+            setIsAuthenticated(true);
+            return
+        }
+        setIsAuthenticated(false);
+    }, [api]);
 
-  const logout = useCallback(async () => {
-    try {
-      // await api.logout();
-      setToken(undefined);
-    } catch (e) {}
-  }, [api]);
+    const logout = useCallback(async () => {
+        try {
+            // await api.logout();
+            setToken(undefined)
+        } catch (e) { }
+    }, [api])
 
-  return {
-    register,
-    checkCode,
-    login,
-    logout,
-    isAuthenticated,
-    isReady,
-    tokenDecoded,
-    token,
-  };
+    return {
+        register,
+        checkCode,
+        login,
+        logout,
+        isAuthenticated,
+        isReady,
+        tokenDecoded,
+        token
+    };
 };
 ```
 
@@ -702,69 +645,67 @@ export const useAuthorizationUseCase = (
 ```typescript
 // src/application/user/useUserUseCase.ts
 
-import { useCallback, useEffect, useState } from 'react';
-import { IUser, IUserRole } from '@domain/models/entities/IUser';
-import { PreferencesStoragePort } from '@domain/ports/out/app/PreferencesStoragePort';
-import { UserServicePort } from '@domain/ports/out/api/UserServicePort';
-import { IAuthorizationPort } from '@domain/ports/in/IAuthorizationPort';
-import { IUserPort } from '@domain/ports/in/IUserPort';
+import { useCallback, useEffect, useState } from "react";
+import { IUser, IUserRole } from "@domain/models/entities/IUser";
+import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
+import { UserServicePort } from "@domain/ports/out/api/UserServicePort";
+import { IAuthorizationPort } from "@domain/ports/in/IAuthorizationPort";
+import { IUserPort } from "@domain/ports/in/IUserPort";
 
-export const useUserUseCase = (
-  api: UserServicePort,
-  storage: PreferencesStoragePort,
-  auth: IAuthorizationPort
-): IUserPort => {
-  const [user, setUser] = useState<IUser>();
-  const [role, setRole] = useState<IUserRole>();
+export const useUserUseCase =
+    (api: UserServicePort, storage: PreferencesStoragePort, auth: IAuthorizationPort):
+        IUserPort => {
+        const [user, setUser] = useState<IUser>()
+        const [role, setRole] = useState<IUserRole>()
 
-  useEffect(() => {
-    if (!auth.isAuthenticated || !auth.tokenDecoded) return clear();
-    const tokenDecoded = auth.tokenDecoded;
-    setRole(getRoleFrom(tokenDecoded.scope, tokenDecoded.email));
-  }, [auth.isAuthenticated, auth.tokenDecoded]);
+        useEffect(() => {
+            if (!auth.isAuthenticated || !auth.tokenDecoded) return clear()
+            const tokenDecoded = auth.tokenDecoded
+            setRole(getRoleFrom(tokenDecoded.scope, tokenDecoded.email))
+        }, [auth.isAuthenticated, auth.tokenDecoded])
 
-  useEffect(() => {
-    if (role && role === 'USER' && !user) {
-      me();
+        useEffect(() => {
+            if (role && role === 'USER' && !user) {
+                me()
+            }
+        }, [role, user])
+
+        const getRoleFrom = (scope: string, email: string): IUserRole => {
+            if (email.toLowerCase() === 'invited') {
+                return 'INVITED';
+            }
+            if (scope.includes('user')) {
+                return 'USER';
+            }
+            if (scope.includes(':admin')) {
+                return 'ADMIN';
+            }
+            return 'INVALID';
+        };
+
+        const clear = useCallback(() => {
+            setRole(undefined);
+            setUser(undefined);
+        }, []);
+
+        const me = useCallback(async () => {
+            try {
+                if (!auth.isAuthenticated) return
+                const userInfo = await api.me()
+                setUser(userInfo)
+            } catch (err) {
+                if ((err as any).status === 401) {
+                    auth.logout()
+                }
+            }
+        }, [api, auth.isAuthenticated])
+
+        return {
+            user,
+            role,
+            me
+        }
     }
-  }, [role, user]);
-
-  const getRoleFrom = (scope: string, email: string): IUserRole => {
-    if (email.toLowerCase() === 'invited') {
-      return 'INVITED';
-    }
-    if (scope.includes('user')) {
-      return 'USER';
-    }
-    if (scope.includes(':admin')) {
-      return 'ADMIN';
-    }
-    return 'INVALID';
-  };
-
-  const clear = useCallback(() => {
-    setRole(undefined);
-    setUser(undefined);
-  }, []);
-
-  const me = useCallback(async () => {
-    try {
-      if (!auth.isAuthenticated) return;
-      const userInfo = await api.me();
-      setUser(userInfo);
-    } catch (err) {
-      if ((err as any).status === 401) {
-        auth.logout();
-      }
-    }
-  }, [api, auth.isAuthenticated]);
-
-  return {
-    user,
-    role,
-    me,
-  };
-};
 ```
 
 ### 2.5. `infrastructure/`
@@ -804,103 +745,84 @@ infrastructure/
 // src/infrastructure/api/useAxiosHTTPClient.ts
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import {
-  HTTPRequest,
-  HTTPResponse,
-  HTTPService,
-} from '@domain/ports/out/api/HTTPService';
+import { HTTPRequest, HTTPResponse, HTTPService } from '@domain/ports/out/api/HTTPService';
 import { useCallback, useRef } from 'react';
-import { merge } from 'lodash';
+import { merge } from 'lodash'
 
-export const useAxiosHTTPClient = (
-  config?: Partial<HTTPRequest<any>>
-): HTTPService => {
-  const httpConfigRef = useRef(mapToAxiosConfig(config || {}));
-  const axiosInstanceRef = useRef<AxiosInstance>(
-    axios.create(httpConfigRef.current)
-  );
+export const useAxiosHTTPClient = (config?: Partial<HTTPRequest<any>>): HTTPService => {
+    const httpConfigRef = useRef(mapToAxiosConfig(config || {}));
+    const axiosInstanceRef = useRef<AxiosInstance>(axios.create(httpConfigRef.current));
 
-  const setConfig = useCallback((config: Partial<HTTPRequest<any>>) => {
-    httpConfigRef.current = mapToAxiosConfig(
-      merge(httpConfigRef.current, config)
-    );
-    axiosInstanceRef.current = axios.create(httpConfigRef.current);
-  }, []);
+    const setConfig = useCallback((config: Partial<HTTPRequest<any>>) => {
+        httpConfigRef.current = mapToAxiosConfig(merge(httpConfigRef.current, config));
+        axiosInstanceRef.current = axios.create(httpConfigRef.current);
+    }, []);
 
-  const request = useCallback(
-    async <T>(config: HTTPRequest<T>): Promise<HTTPResponse<T>> => {
-      const axiosConfig = mapToAxiosConfig(
-        merge(httpConfigRef.current, config)
-      );
+    const request = useCallback(async <T>(config: HTTPRequest<T>): Promise<HTTPResponse<T>> => {
+        const axiosConfig = mapToAxiosConfig(merge(httpConfigRef.current, config));
 
-      try {
-        const response: AxiosResponse<T> = await axiosInstanceRef.current(
-          axiosConfig
-        );
+        try {
+            const response: AxiosResponse<T> = await axiosInstanceRef.current(axiosConfig);
 
-        return {
-          data: response.data,
-          status: response.status,
-          statusText: response.statusText,
-          headers: convertHeaders(response.headers),
-          config,
-          request: response.request,
-        };
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-          throw {
-            data: error.response.data,
-            status: error.response.status,
-            statusText: error.response.statusText,
-            headers: convertHeaders(error.response.headers),
-            config,
-            request: error.request,
-          };
-        } else {
-          console.error('useAxiosHTTPClient Error:', error);
-          throw {
-            type: 'UnexpectedError',
-            message: error instanceof Error ? error.message : 'Unknown error',
-            originalError: error,
-          };
+            return {
+                data: response.data,
+                status: response.status,
+                statusText: response.statusText,
+                headers: convertHeaders(response.headers),
+                config,
+                request: response.request,
+            };
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                throw {
+                    data: error.response.data,
+                    status: error.response.status,
+                    statusText: error.response.statusText,
+                    headers: convertHeaders(error.response.headers),
+                    config,
+                    request: error.request,
+                };
+            } else {
+                console.error('useAxiosHTTPClient Error:', error);
+                throw {
+                    type: 'UnexpectedError',
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    originalError: error,
+                };
+            }
         }
-      }
-    },
-    []
-  );
+    }, []);
 
-  function mapToAxiosConfig<T>(
-    config: Partial<HTTPRequest<T>>
-  ): AxiosRequestConfig {
-    return {
-      baseURL: config.baseURL || undefined,
-      method: config.method || 'GET',
-      url: config.url,
-      headers: config.headers,
-      data: config.body,
-      params: config.query || config.params,
-      responseType: config.responseType || 'json',
-      timeout: config.timeout,
-      withCredentials: config.withCredentials,
-      transformRequest: config.transformRequest,
-      transformResponse: config.transformResponse,
-    };
-  }
-
-  function convertHeaders(headers: any): Record<string, string> {
-    const result: Record<string, string> = {};
-    if (headers) {
-      Object.keys(headers).forEach((key) => {
-        result[key] = headers[key] as string;
-      });
+    function mapToAxiosConfig<T>(config: Partial<HTTPRequest<T>>): AxiosRequestConfig {
+        return {
+            baseURL: config.baseURL || undefined,
+            method: config.method || 'GET',
+            url: config.url,
+            headers: config.headers,
+            data: config.body,
+            params: config.query || config.params,
+            responseType: config.responseType || 'json',
+            timeout: config.timeout,
+            withCredentials: config.withCredentials,
+            transformRequest: config.transformRequest,
+            transformResponse: config.transformResponse,
+        };
     }
-    return result;
-  }
 
-  return {
-    setConfig,
-    request,
-  };
+    function convertHeaders(headers: any): Record<string, string> {
+        const result: Record<string, string> = {};
+        if (headers) {
+            Object.keys(headers).forEach((key) => {
+                result[key] = headers[key] as string;
+            });
+        }
+        return result;
+    }
+
+    return {
+        setConfig,
+        request,
+    };
 };
 ```
 
@@ -914,73 +836,62 @@ import { HTTPService } from '@domain/ports/out/api/HTTPService';
 import { AuthorizationServicePort } from '@domain/ports/out/api/AuthorizationServicePort';
 import { IJwt } from '@domain/models/entities/IJwt';
 
-export const useAuthorizationAPIClient = (
-  httpService: HTTPService
-): AuthorizationServicePort => {
-  const httpServiceRef = useRef(httpService);
+export const useAuthorizationAPIClient = (httpService: HTTPService): AuthorizationServicePort => {
+    const httpServiceRef = useRef(httpService);
 
-  useEffect(() => {
-    httpServiceRef.current.setConfig({
-      baseURL: import.meta.env.VITE_API_ENDPOINT,
-    });
-  }, []);
+    useEffect(() => {
+        httpServiceRef.current.setConfig({
+            baseURL: import.meta.env.VITE_API_ENDPOINT,
+        });
+    }, []);
 
-  const registerInvite = useCallback(async () => {
-    const response = await httpServiceRef.current.request({
-      url: '/register/invite',
-      responseType: 'json',
-    });
-    return response.data as IJwt;
-  }, [httpService]);
+    const registerInvite = useCallback(async () => {
+        const response = await httpServiceRef.current.request({
+            url: '/register/invite',
+            responseType: 'json',
+        })
+        return response.data as IJwt
+    }, [httpService])
 
-  const registerEmail = useCallback(
-    async (email: string) => {
-      const response = await httpServiceRef.current.request({
-        method: 'POST',
-        url: '/register',
-        responseType: 'json',
-        body: { full_name: '', phone: '', email: email, code: '' },
-      });
-      return response.data;
-    },
-    [httpService]
-  );
+    const registerEmail = useCallback(async (email: string) => {
+        const response = await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/register',
+            responseType: 'json',
+            body: { "full_name": "", "phone": "", "email": email, "code": "" }
+        })
+        return response.data
+    }, [httpService])
 
-  const checkCode = useCallback(
-    async (code: string, email: string): Promise<IJwt> => {
-      const response = await httpServiceRef.current.request({
-        method: 'POST',
-        url: '/register/check-code',
-        responseType: 'json',
-        body: { email: email, full_name: '-', phone: '', code: code },
-      });
-      return response.data as IJwt;
-    },
-    [httpService]
-  );
+    const checkCode = useCallback(async (code: string, email: string): Promise<IJwt> => {
+        const response = await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/register/check-code',
+            responseType: 'json',
+            body: { "email": email, "full_name": "-", "phone": "", "code": code }
+        })
+        return response.data as IJwt
+    }, [httpService])
 
-  const login = useCallback(
-    async (user: string, pass: string): Promise<any> => {
-      const response = await httpServiceRef.current.request({
-        method: 'POST',
-        url: '/auth/login',
-        body: { user, pass },
-        responseType: 'json',
-      });
-      return response.data;
-    },
-    []
-  );
+    const login = useCallback(async (user: string, pass: string): Promise<any> => {
+        const response = await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/auth/login',
+            body: { user, pass },
+            responseType: 'json',
+        });
+        return response.data;
+    }, []);
 
-  const logout = useCallback(async (): Promise<void> => {
-    await httpServiceRef.current.request({
-      method: 'POST',
-      url: '/auth/logout',
-      responseType: 'json',
-    });
-  }, []);
+    const logout = useCallback(async (): Promise<void> => {
+        await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/auth/logout',
+            responseType: 'json',
+        });
+    }, []);
 
-  return { registerInvite, registerEmail, checkCode, login, logout };
+    return { registerInvite, registerEmail, checkCode, login, logout };
 };
 ```
 
@@ -1024,33 +935,33 @@ import { XInput } from '@theme/components/XInput';
 import { XPage } from '@theme/components/XPage';
 
 export const Login = () => {
-  const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+    const { login } = useAuth();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    await login(email, password);
-  };
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        await login(email, password);
+    };
 
-  return (
-    <XPage title="Iniciar Sesión">
-      <form onSubmit={handleSubmit}>
-        <XInput
-          label="Correo Electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <XInput
-          label="Contraseña"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <XButton type="submit">Ingresar</XButton>
-      </form>
-    </XPage>
-  );
+    return (
+        <XPage title="Iniciar Sesión">
+            <form onSubmit={handleSubmit}>
+                <XInput
+                    label="Correo Electrónico"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <XInput
+                    label="Contraseña"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <XButton type="submit">Ingresar</XButton>
+            </form>
+        </XPage>
+    );
 };
 ```
 
@@ -1061,26 +972,27 @@ export const Login = () => {
 
 import { useNavigate } from 'react-router';
 
-interface IProps {}
+interface IProps { }
 
 const NotFound: React.FC<IProps> = () => {
-  const navigate = useNavigate();
 
-  return (
-    <div>
-      <header>
+    const navigate = useNavigate()
+
+    return (
         <div>
-          <button onClick={() => navigate(-1)}>
-            <span>Volver</span>
-          </button>
-          <h1>No encontrado</h1>
+            <header>
+                <div>
+                    <button onClick={() => navigate(-1)}>
+                        <span>Volver</span>
+                    </button>
+                    <h1>No encontrado</h1>
+                </div>
+            </header>
+            <main>
+                <h1>Esta página no existe</h1>
+            </main>
         </div>
-      </header>
-      <main>
-        <h1>Esta página no existe</h1>
-      </main>
-    </div>
-  );
+    );
 };
 
 export default NotFound;
@@ -1118,15 +1030,7 @@ providers/
 ```typescript
 // src/providers/AuthProvider.tsx
 
-import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useState,
-  useEffect,
-  ComponentType,
-  useRef,
-} from 'react';
+import React, { createContext, ReactNode, useContext, useState, useEffect, ComponentType, useRef } from 'react';
 import { useAuthorizationUseCase } from '../application/auth/useAuthorizationUseCase';
 import { useAuthorizationAPIClient } from '../infrastructure/api/useAuthorizationAPIClient';
 import { IUser } from '../domain/models/entities/IUser';
@@ -1136,50 +1040,46 @@ import { useAuthorizedAxiosHTTPClient } from '@infrastructure/api/useAuthorizedA
 
 const AuthProviderContext = createContext<IAuthorizationPort | null>(null);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const useAuthAPI = useRef(
-    useAuthorizationAPIClient(
-      useAuthorizedAxiosHTTPClient(usePreferencesStorage())
-    )
-  );
-  const useCases = useAuthorizationUseCase(useAuthAPI.current);
 
-  return (
-    <AuthProviderContext.Provider value={useCases}>
-      {children}
-    </AuthProviderContext.Provider>
-  );
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const useAuthAPI = useRef(useAuthorizationAPIClient(useAuthorizedAxiosHTTPClient(usePreferencesStorage())))
+    const useCases = useAuthorizationUseCase(useAuthAPI.current)
+
+    return (
+        <AuthProviderContext.Provider value={useCases}>
+            {children}
+        </AuthProviderContext.Provider>
+    );
 };
 
 export const withAuthProvider = <P extends object>(
-  WrappedComponent: ComponentType<P>
+    WrappedComponent: ComponentType<P>
 ): React.FC<P> => {
-  return (props: P) => {
-    return (
-      <AuthProvider>
-        <WrappedComponent {...props} />
-      </AuthProvider>
-    );
-  };
+    return (props: P) => {
+        return (
+            <AuthProvider>
+                <WrappedComponent {...props} />
+            </AuthProvider>
+        );
+    };
 };
 
 export const withAuth = <P extends object>(
-  WrappedComponent: ComponentType<P>
+    WrappedComponent: ComponentType<P>
 ): React.FC<P> => {
-  return (props: P) => {
-    const auth = useAuth();
-    return <WrappedComponent {...props} auth={{ ...auth }} />;
-  };
+    return (props: P) => {
+        const auth = useAuth();
+        return <WrappedComponent {...props} auth={{ ...auth }} />;
+    };
 };
 
+
 export const useAuth = (): IAuthorizationPort => {
-  const context = useContext(AuthProviderContext);
-  if (!context) {
-    throw new Error('useAuth debe ser usado dentro de AuthProvider');
-  }
-  return context;
+    const context = useContext(AuthProviderContext);
+    if (!context) {
+        throw new Error('useAuth debe ser usado dentro de AuthProvider');
+    }
+    return context;
 };
 ```
 
@@ -1191,12 +1091,12 @@ export const useAuth = (): IAuthorizationPort => {
 import React, { ReactNode } from 'react';
 
 export const composeProvider =
-  (...providers: Array<React.FC<{ children: ReactNode }>>) =>
-  ({ children }: { children: ReactNode }) =>
-    providers.reduceRight(
-      (acc, Provider) => <Provider>{acc}</Provider>,
-      children
-    );
+    (...providers: Array<React.FC<{ children: ReactNode }>>) =>
+        ({ children }: { children: ReactNode }) =>
+            providers.reduceRight(
+                (acc, Provider) => <Provider>{acc}</Provider>,
+                children
+            );
 ```
 
 ### 2.8. `presentation/`
@@ -1239,33 +1139,33 @@ import { XInput } from '@theme/components/XInput';
 import { XPage } from '@theme/components/XPage';
 
 export const Login = () => {
-  const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+    const { login } = useAuth();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    await login(email, password);
-  };
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        await login(email, password);
+    };
 
-  return (
-    <XPage title="Iniciar Sesión">
-      <form onSubmit={handleSubmit}>
-        <XInput
-          label="Correo Electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <XInput
-          label="Contraseña"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <XButton type="submit">Ingresar</XButton>
-      </form>
-    </XPage>
-  );
+    return (
+        <XPage title="Iniciar Sesión">
+            <form onSubmit={handleSubmit}>
+                <XInput
+                    label="Correo Electrónico"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <XInput
+                    label="Contraseña"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <XButton type="submit">Ingresar</XButton>
+            </form>
+        </XPage>
+    );
 };
 ```
 
@@ -1276,26 +1176,27 @@ export const Login = () => {
 
 import { useNavigate } from 'react-router';
 
-interface IProps {}
+interface IProps { }
 
 const NotFound: React.FC<IProps> = () => {
-  const navigate = useNavigate();
 
-  return (
-    <div>
-      <header>
+    const navigate = useNavigate()
+
+    return (
         <div>
-          <button onClick={() => navigate(-1)}>
-            <span>Volver</span>
-          </button>
-          <h1>No encontrado</h1>
+            <header>
+                <div>
+                    <button onClick={() => navigate(-1)}>
+                        <span>Volver</span>
+                    </button>
+                    <h1>No encontrado</h1>
+                </div>
+            </header>
+            <main>
+                <h1>Esta página no existe</h1>
+            </main>
         </div>
-      </header>
-      <main>
-        <h1>Esta página no existe</h1>
-      </main>
-    </div>
-  );
+    );
 };
 
 export default NotFound;
@@ -1310,7 +1211,6 @@ export default NotFound;
 La carpeta `theme/` contiene el **sistema de diseño**, incluyendo estilos globales, temas y componentes estilizados.
 
 #### Estructura
-
 ```plaintext
 theme/
 ├── components/

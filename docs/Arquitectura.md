@@ -1,20 +1,18 @@
-## Arquitectura del Proyecto
+Claro, vamos a actualizar el documento `Arquitectura.md` utilizando la información proporcionada. Aquí tienes una versión detallada del archivo `Arquitectura.md` para el proyecto `boilerplate-app`, basada en la estructura y el código facilitado.
 
-El proyecto sigue la **arquitectura hexagonal (Hexagonal Architecture)**, también conocida como **arquitectura de puertos y adaptadores**. Esta arquitectura promueve la **modularización del código**, facilitando la mantenibilidad y la escalabilidad de la aplicación.
+## Arquitectura del Proyecto `boilerplate-app`
 
-### Estructura General del Proyecto
+El directorio `src/` es el núcleo de nuestra aplicación y sigue la **arquitectura hexagonal**, que promueve un código modular y desacoplado. A continuación, se detalla cada una de las subcarpetas dentro de `src/`, explicando su propósito y proporcionando ejemplos para facilitar su comprensión.
 
-La estructura del proyecto se divide en diferentes carpetas y sub-carpetas, cada una con un propósito específico. A continuación, se detalla cada una de estas carpetas y se proporcionan ejemplos con el código actual.
-
-### Estructura de Directorios
+### Estructura General de `src/`
 
 ```plaintext
 src/
 ├── App.tsx
 ├── __test__/
 ├── application/
+├── assets/
 ├── domain/
-├── hooks/
 ├── infrastructure/
 ├── main.tsx
 ├── presentation/
@@ -27,15 +25,13 @@ src/
 
 ---
 
-## Detalle de las Carpetas y Subcarpetas
-
 ### 2.1. `domain/`
 
 **Ubicación:** `src/domain/`
 
 #### Descripción
 
-La carpeta `domain/` contiene la **lógica de negocio pura** de la aplicación. Aquí se definen:
+La carpeta `domain/` contiene la **lógica de negocio pura** de la aplicación. Aquí definimos:
 
 - **Modelos (Entidades):** Representaciones de los objetos del dominio.
 - **Puertos (Interfaces):** Contratos que definen cómo otras capas pueden interactuar con el dominio.
@@ -58,11 +54,13 @@ domain/
     │   ├── PreferencesStoragePort.ts
     │   └── RemoteConfigPort.ts
     ├── api/
+    │   ├── APIClient.ts
     │   ├── AuthorizationServicePort.ts
-    │   ├── HTTPService.ts
     │   └── UserServicePort.ts
-    └── device/
-        └── PushNotificationsPort.ts
+    ├── device/
+    └── in/
+        ├── IAuthorizationPort.ts
+        └── IUserPort.ts
 ```
 
 #### Ejemplos
@@ -74,15 +72,9 @@ domain/
 
 export interface IUser {
     id: string;
-    full_name: string;
     email: string;
-    last_name?: string;
+    full_name: string;
     avatar?: string;
-    phone?: string;
-    gender?: string;
-    birthday?: Date;
-    meta_data?: Record<string, any>;
-    permissions?: Record<string, unknown>;
 }
 
 export type IUserRole = 'INVITED' | 'USER' | 'ADMIN' | 'INVALID'
@@ -96,13 +88,12 @@ export type IUserRole = 'INVITED' | 'USER' | 'ADMIN' | 'INVALID'
 import { IJwt } from "@domain/models/entities/IJwt";
 
 export interface AuthorizationServicePort {
-    registerInvite(): Promise<IJwt>
-    registerEmail(email: string): Promise<any>
-    checkCode(code: string, email: string): Promise<IJwt>
-    login(user: string, pass: string): Promise<any>
-    logout(): Promise<void>
+    login(user: string, pass: string): Promise<IJwt>;
+    logout(): Promise<void>;
 }
 ```
+
+---
 
 ### 2.2. `application/`
 
@@ -135,7 +126,7 @@ import { AuthorizationServicePort } from "@domain/ports/out/api/AuthorizationSer
 import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
 import { IJwt } from '@domain/models/entities/IJwt';
 import { IJwtDecode } from '@domain/models/entities/IJwtDecode';
-import { FlowType, IAuthorizationPort } from '@domain/ports/in/IAuthorizationPort';
+import { IAuthorizationPort } from '@domain/ports/in/IAuthorizationPort';
 
 export const useAuthorizationUseCase = (api: AuthorizationServicePort, storage: PreferencesStoragePort): IAuthorizationPort => {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -178,133 +169,41 @@ export const useAuthorizationUseCase = (api: AuthorizationServicePort, storage: 
             await storage.set('@token', token)
         }
     }
+
     const removeToken = async () => {
         await storage.remove('@token')
     }
 
-    const register = useCallback(async (flow: FlowType, param?: any) => {
-        switch (flow) {
-            case 'INVITE':
-                setIsAuthenticated(false)
-                const response: IJwt = await api.registerInvite()
-                setToken(response.access_token)
-                return response
-            case 'EMAIL':
-                setIsAuthenticated(false)
-                const email = param
-                const response = await api.registerEmail(email)
-                return response
-            default:
-                setIsAuthenticated(false)
-                setToken(undefined)
-                return
-        }
-    }, [api])
-
-    const checkCode = useCallback(async (code: string, email: string) => {
-        setIsAuthenticated(false)
-        const response: IJwt = await api.checkCode(code, email)
-        setToken(response.access_token)
-    }, [api])
-
     const login = useCallback(async (user: string, pass: string) => {
-        const response = await api.login(user, pass);
-        if (response.status === 200) {
-            const body = response.body;
-            setIsAuthenticated(true);
-            return
+        try {
+            const response: IJwt = await api.login(user, pass);
+            setToken(response.access_token);
+        } catch (error) {
+            setToken(undefined);
+            throw error;
         }
-        setIsAuthenticated(false);
     }, [api]);
 
     const logout = useCallback(async () => {
         try {
-            // await api.logout();
-            setToken(undefined)
-        } catch (e) { }
-    }, [api])
+            await api.logout();
+        } finally {
+            setToken(undefined);
+        }
+    }, [api]);
 
     return {
-        register,
-        checkCode,
         login,
         logout,
         isAuthenticated,
         isReady,
-        tokenDecoded,
-        token
+        token,
+        tokenDecoded
     };
 };
 ```
 
-2. **Caso de Uso de Usuario (`useUserUseCase.ts`):**
-
-```typescript
-// src/application/user/useUserUseCase.ts
-
-import { useCallback, useEffect, useState } from "react";
-import { IUser, IUserRole } from "@domain/models/entities/IUser";
-import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
-import { UserServicePort } from "@domain/ports/out/api/UserServicePort";
-import { IAuthorizationPort } from "@domain/ports/in/IAuthorizationPort";
-import { IUserPort } from "@domain/ports/in/IUserPort";
-
-export const useUserUseCase =
-    (api: UserServicePort, auth: IAuthorizationPort):
-        IUserPort => {
-        const [user, setUser] = useState<IUser>()
-        const [role, setRole] = useState<IUserRole>()
-
-        useEffect(() => {
-            if (!auth.isAuthenticated || !auth.tokenDecoded) return clear()
-            const tokenDecoded = auth.tokenDecoded
-            setRole(getRoleFrom(tokenDecoded.scope, tokenDecoded.email))
-        }, [auth.isAuthenticated, auth.tokenDecoded])
-
-        useEffect(() => {
-            if (role && role === 'USER' && !user) {
-                me()
-            }
-        }, [role, user])
-
-        const getRoleFrom = (scope: string, email: string): IUserRole => {
-            if (email.toLowerCase() === 'invited') {
-                return 'INVITED';
-            }
-            if (scope.includes('user')) {
-                return 'USER';
-            }
-            if (scope.includes(':admin')) {
-                return 'ADMIN';
-            }
-            return 'INVALID';
-        };
-
-        const clear = useCallback(() => {
-            setRole(undefined);
-            setUser(undefined);
-        }, []);
-
-        const me = useCallback(async () => {
-            try {
-                if (!auth.isAuthenticated) return
-                const userInfo = await api.me()
-                setUser(userInfo)
-            } catch (err) {
-                if ((err as any).status === 401) {
-                    auth.logout()
-                }
-            }
-        }, [api, auth.isAuthenticated])
-
-        return {
-            user,
-            role,
-            me
-        }
-    }
-```
-
+---
 
 ### 2.3. `infrastructure/`
 
@@ -319,8 +218,8 @@ La carpeta `infrastructure/` contiene las **implementaciones concretas** de los 
 ```plaintext
 infrastructure/
 ├── api/
-│   ├── useAxiosHTTPClient.ts
 │   ├── useAuthorizedAxiosHTTPClient.ts
+│   ├── useAxiosHTTPClient.ts
 │   ├── useFetchHTTPClient.ts
 │   ├── useAuthorizationAPIClient.ts
 │   └── useUserAPIClient.ts
@@ -337,96 +236,7 @@ infrastructure/
 
 #### Ejemplos
 
-1. **Implementación de HttpClient (`useAxiosHTTPClient.ts`):**
-
-```typescript
-// src/infrastructure/api/useAxiosHTTPClient.ts
-
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { HTTPRequest, HTTPResponse, HTTPService } from '@domain/ports/out/api/HTTPService';
-import { useCallback, useRef } from 'react';
-import { merge } from 'lodash'
-
-export const useAxiosHTTPClient = (config?: Partial<HTTPRequest<any>>): HTTPService => {
-    const httpConfigRef = useRef(mapToAxiosConfig(config || {}));
-    const axiosInstanceRef = useRef<AxiosInstance>(axios.create(httpConfigRef.current));
-
-    const setConfig = useCallback((config: Partial<HTTPRequest<any>>) => {
-        httpConfigRef.current = mapToAxiosConfig(merge(httpConfigRef.current, config));
-        axiosInstanceRef.current = axios.create(httpConfigRef.current);
-    }, []);
-
-    const request = useCallback(async <T>(config: HTTPRequest<T>): Promise<HTTPResponse<T>> => {
-        const axiosConfig = mapToAxiosConfig(merge(httpConfigRef.current, config));
-
-        try {
-            const response: AxiosResponse<T> = await axiosInstanceRef.current(axiosConfig);
-
-            return {
-                data: response.data,
-                status: response.status,
-                statusText: response.statusText,
-                headers: convertHeaders(response.headers),
-                config,
-                request: response.request,
-            };
-        } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-                throw {
-                    data: error.response.data,
-                    status: error.response.status,
-                    statusText: error.response.statusText,
-                    headers: convertHeaders(error.response.headers),
-                    config,
-                    request: error.request,
-                };
-            } else {
-                console.error('useAxiosHTTPClient Error:', error);
-                throw {
-                    type: 'UnexpectedError',
-                    message: error instanceof Error ? error.message : 'Unknown error',
-                    originalError: error,
-                };
-            }
-        }
-    }, []);
-
-    function mapToAxiosConfig<T>(
-        config: Partial<HTTPRequest<T>>
-    ): AxiosRequestConfig {
-        return {
-            baseURL: config.baseURL || undefined,
-            method: config.method || 'GET',
-            url: config.url,
-            headers: config.headers,
-            data: config.body,
-            params: config.query || config.params,
-            responseType: config.responseType || 'json',
-            timeout: config.timeout,
-            withCredentials: config.withCredentials,
-            transformRequest: config.transformRequest,
-            transformResponse: config.transformResponse,
-        };
-    }
-
-    function convertHeaders(headers: any): Record<string, string> {
-        const result: Record<string, string> = {};
-        if (headers) {
-            Object.keys(headers).forEach((key) => {
-                result[key] = headers[key] as string;
-            });
-        }
-        return result;
-    }
-
-    return {
-        setConfig,
-        request,
-    };
-};
-```
-
-2. **Implementación de `IAuthorizationServicePort` con Axios (`useAuthorizationAPIClient.ts`):**
+1. **Implementación de `IAuthorizationServicePort` con Axios (`useAuthorizationAPIClient.ts`):**
 
 ```typescript
 // src/infrastructure/api/useAuthorizationAPIClient.ts
@@ -445,442 +255,14 @@ export const useAuthorizationAPIClient = (httpService: HTTPService): Authorizati
         });
     }, []);
 
-    const registerInvite = useCallback(async () => {
-        const response = await httpServiceRef.current.request({
-            url: '/register/invite',
-            responseType: 'json',
-        })
-        return response.data as IJwt
-    }, [httpService])
-
-    const registerEmail = useCallback(async (email: string) => {
-        const response = await httpServiceRef.current.request({
-            method: 'POST',
-            url: '/register',
-            responseType: 'json',
-            body: { "full_name": "", "phone": "", "email": email, "code": "" }
-        })
-        return response.data
-    }, [httpService])
-
-    const checkCode = useCallback(async (code: string, email: string): Promise<IJwt> => {
-        const response = await httpServiceRef.current.request({
-            method: 'POST',
-            url: '/register/check-code',
-            responseType: 'json',
-            body: { "email": email, "full_name": "-", "phone": "", "code": code }
-        })
-        return response.data as IJwt
-    }, [httpService])
-    /**
-     * Inicia sesión con las credenciales proporcionadas.
-     * @param user Nombre de usuario o email.
-     * @param pass Contraseña.
-     * @returns Una promesa que se resuelve con los datos de la sesión.
-     */
-    const login = useCallback(async (user: string, pass: string): Promise<any> => {
+    const login = useCallback(async (user: string, pass: string): Promise<IJwt> => {
         const response = await httpServiceRef.current.request({
             method: 'POST',
             url: '/auth/login',
             body: { user, pass },
             responseType: 'json',
         });
-        return response.data;
-    }, []);
-
-    /**
-     * Cierra sesión.
-     * @returns Una promesa que se resuelve al completar la operación.
-     */
-    const logout = useCallback(async (): Promise<void> => {
-        await httpServiceRef.current.request({
-            method: 'POST',
-            url: '/auth/logout',
-            responseType: 'json',
-        });
-    }, []);
-
-    return { registerInvite, registerEmail, checkCode, login, logout };
-};
-```
-
-### 2.4. `application/`
-
-**Ubicación:** `src/application/`
-
-#### Descripción
-
-La carpeta `application/` contiene los **casos de uso** de la aplicación, que se implementan como **hooks de React**. Estos casos de uso utilizan los puertos y modelos definidos en el dominio.
-
-#### Estructura
-
-```plaintext
-application/
-├── auth/
-│   └── useAuthorizationUseCase.ts
-└── user/
-    └── useUserUseCase.ts
-```
-
-#### Ejemplos
-
-1. **Caso de Uso de Autorización (`useAuthorizationUseCase.ts`):**
-
-```typescript
-// src/application/auth/useAuthorizationUseCase.ts
-
-import jwt from 'jsonwebtoken';
-import { useState, useCallback, useEffect } from 'react';
-import { AuthorizationServicePort } from "@domain/ports/out/api/AuthorizationServicePort";
-import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
-import { IJwt } from '@domain/models/entities/IJwt';
-import { IJwtDecode } from '@domain/models/entities/IJwtDecode';
-import { FlowType, IAuthorizationPort } from '@domain/ports/in/IAuthorizationPort';
-
-export const useAuthorizationUseCase = (api: AuthorizationServicePort, storage: PreferencesStoragePort): IAuthorizationPort => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [isReady, setIsReady] = useState<boolean>(false);
-    const [token, setToken] = useState<string>();
-    const [tokenDecoded, setTokenDecode] = useState<IJwtDecode>();
-
-    useEffect(() => {
-        getToken()
-    }, [storage])
-
-    // Actualizar token y tokenDecode
-    useEffect(() => {
-        if (token) {
-            setTokenDecode(decodeToken(token))
-            setIsAuthenticated(true);
-            setIsReady(true)
-            saveToken(token)
-        } else if (isReady) {
-            setIsAuthenticated(false);
-            setTokenDecode(undefined)
-            removeToken()
-        }
-
-    }, [token])
-
-    const decodeToken = (token: string) => {
-        return jwt.decode(token) as IJwtDecode
-    }
-
-    const getToken = async () => {
-        const currentToken = await storage.get('@token')
-        if (currentToken) {
-            setToken(currentToken)
-            return
-        }
-        setIsReady(true)
-    }
-
-    const saveToken = async (token: string) => {
-        if (token) {
-            await storage.set('@token', token)
-        }
-    }
-    const removeToken = async () => {
-        await storage.remove('@token')
-    }
-
-    const register = useCallback(async (flow: FlowType, param?: any) => {
-        switch (flow) {
-            case 'INVITE':
-                setIsAuthenticated(false)
-                const response: IJwt = await api.registerInvite()
-                setToken(response.access_token)
-                return response
-            case 'EMAIL':
-                setIsAuthenticated(false)
-                const email = param
-                const response = await api.registerEmail(email)
-                return response
-            default:
-                setIsAuthenticated(false)
-                setToken(undefined)
-                return
-        }
-    }, [api])
-
-    const checkCode = useCallback(async (code: string, email: string) => {
-        setIsAuthenticated(false)
-        const response: IJwt = await api.checkCode(code, email)
-        setToken(response.access_token)
-    }, [api])
-
-    const login = useCallback(async (user: string, pass: string) => {
-        const response = await api.login(user, pass);
-
-        if (response.status === 200) {
-            const body = response.body;
-            setIsAuthenticated(true);
-            return
-        }
-        setIsAuthenticated(false);
-    }, [api]);
-
-    const logout = useCallback(async () => {
-        try {
-            // await api.logout();
-            setToken(undefined)
-        } catch (e) { }
-    }, [api])
-
-    return {
-        register,
-        checkCode,
-        login,
-        logout,
-        isAuthenticated,
-        isReady,
-        tokenDecoded,
-        token
-    };
-};
-```
-
-2. **Caso de Uso de Usuario (`useUserUseCase.ts`):**
-
-```typescript
-// src/application/user/useUserUseCase.ts
-
-import { useCallback, useEffect, useState } from "react";
-import { IUser, IUserRole } from "@domain/models/entities/IUser";
-import { PreferencesStoragePort } from "@domain/ports/out/app/PreferencesStoragePort";
-import { UserServicePort } from "@domain/ports/out/api/UserServicePort";
-import { IAuthorizationPort } from "@domain/ports/in/IAuthorizationPort";
-import { IUserPort } from "@domain/ports/in/IUserPort";
-
-export const useUserUseCase =
-    (api: UserServicePort, storage: PreferencesStoragePort, auth: IAuthorizationPort):
-        IUserPort => {
-        const [user, setUser] = useState<IUser>()
-        const [role, setRole] = useState<IUserRole>()
-
-        useEffect(() => {
-            if (!auth.isAuthenticated || !auth.tokenDecoded) return clear()
-            const tokenDecoded = auth.tokenDecoded
-            setRole(getRoleFrom(tokenDecoded.scope, tokenDecoded.email))
-        }, [auth.isAuthenticated, auth.tokenDecoded])
-
-        useEffect(() => {
-            if (role && role === 'USER' && !user) {
-                me()
-            }
-        }, [role, user])
-
-        const getRoleFrom = (scope: string, email: string): IUserRole => {
-            if (email.toLowerCase() === 'invited') {
-                return 'INVITED';
-            }
-            if (scope.includes('user')) {
-                return 'USER';
-            }
-            if (scope.includes(':admin')) {
-                return 'ADMIN';
-            }
-            return 'INVALID';
-        };
-
-        const clear = useCallback(() => {
-            setRole(undefined);
-            setUser(undefined);
-        }, []);
-
-        const me = useCallback(async () => {
-            try {
-                if (!auth.isAuthenticated) return
-                const userInfo = await api.me()
-                setUser(userInfo)
-            } catch (err) {
-                if ((err as any).status === 401) {
-                    auth.logout()
-                }
-            }
-        }, [api, auth.isAuthenticated])
-
-        return {
-            user,
-            role,
-            me
-        }
-    }
-```
-
-### 2.5. `infrastructure/`
-
-**Ubicación:** `src/infrastructure/`
-
-#### Descripción
-
-La carpeta `infrastructure/` contiene las **implementaciones concretas** de los puertos definidos en el dominio. Aquí es donde se conecta la aplicación con tecnologías y servicios externos, como APIs y almacenamiento.
-
-#### Estructura
-
-```plaintext
-infrastructure/
-├── api/
-│   ├── useAxiosHTTPClient.ts
-│   ├── useAuthorizedAxiosHTTPClient.ts
-│   ├── useFetchHTTPClient.ts
-│   ├── useAuthorizationAPIClient.ts
-│   └── useUserAPIClient.ts
-├── capacitor/
-│   ├── useAppAdapter.ts
-│   ├── useCapacitorPreferencesStorageAdapter.ts
-│   └── usePushNotificationsAdapter.ts
-└── firebase/
-    ├── initializeApp.ts
-    ├── useFirebaseAnalyticsAdapter.ts
-    ├── useFirebaseErrorTrackingAdapter.ts
-    └── useFirebaseRemoteConfigAdapter.ts
-```
-
-#### Ejemplos
-
-1. **Implementación de HttpClient (`useAxiosHTTPClient.ts`):**
-
-```typescript
-// src/infrastructure/api/useAxiosHTTPClient.ts
-
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { HTTPRequest, HTTPResponse, HTTPService } from '@domain/ports/out/api/HTTPService';
-import { useCallback, useRef } from 'react';
-import { merge } from 'lodash'
-
-export const useAxiosHTTPClient = (config?: Partial<HTTPRequest<any>>): HTTPService => {
-    const httpConfigRef = useRef(mapToAxiosConfig(config || {}));
-    const axiosInstanceRef = useRef<AxiosInstance>(axios.create(httpConfigRef.current));
-
-    const setConfig = useCallback((config: Partial<HTTPRequest<any>>) => {
-        httpConfigRef.current = mapToAxiosConfig(merge(httpConfigRef.current, config));
-        axiosInstanceRef.current = axios.create(httpConfigRef.current);
-    }, []);
-
-    const request = useCallback(async <T>(config: HTTPRequest<T>): Promise<HTTPResponse<T>> => {
-        const axiosConfig = mapToAxiosConfig(merge(httpConfigRef.current, config));
-
-        try {
-            const response: AxiosResponse<T> = await axiosInstanceRef.current(axiosConfig);
-
-            return {
-                data: response.data,
-                status: response.status,
-                statusText: response.statusText,
-                headers: convertHeaders(response.headers),
-                config,
-                request: response.request,
-            };
-        } catch (error) {
-            if (axios.isAxiosError(error) && error.response) {
-                throw {
-                    data: error.response.data,
-                    status: error.response.status,
-                    statusText: error.response.statusText,
-                    headers: convertHeaders(error.response.headers),
-                    config,
-                    request: error.request,
-                };
-            } else {
-                console.error('useAxiosHTTPClient Error:', error);
-                throw {
-                    type: 'UnexpectedError',
-                    message: error instanceof Error ? error.message : 'Unknown error',
-                    originalError: error,
-                };
-            }
-        }
-    }, []);
-
-    function mapToAxiosConfig<T>(config: Partial<HTTPRequest<T>>): AxiosRequestConfig {
-        return {
-            baseURL: config.baseURL || undefined,
-            method: config.method || 'GET',
-            url: config.url,
-            headers: config.headers,
-            data: config.body,
-            params: config.query || config.params,
-            responseType: config.responseType || 'json',
-            timeout: config.timeout,
-            withCredentials: config.withCredentials,
-            transformRequest: config.transformRequest,
-            transformResponse: config.transformResponse,
-        };
-    }
-
-    function convertHeaders(headers: any): Record<string, string> {
-        const result: Record<string, string> = {};
-        if (headers) {
-            Object.keys(headers).forEach((key) => {
-                result[key] = headers[key] as string;
-            });
-        }
-        return result;
-    }
-
-    return {
-        setConfig,
-        request,
-    };
-};
-```
-
-2. **Implementación de `IAuthorizationAPIClient` con Axios (`useAuthorizationAPIClient.ts`):**
-
-```typescript
-// src/infrastructure/api/useAuthorizationAPIClient.ts
-
-import { useCallback, useEffect, useRef } from 'react';
-import { HTTPService } from '@domain/ports/out/api/HTTPService';
-import { AuthorizationServicePort } from '@domain/ports/out/api/AuthorizationServicePort';
-import { IJwt } from '@domain/models/entities/IJwt';
-
-export const useAuthorizationAPIClient = (httpService: HTTPService): AuthorizationServicePort => {
-    const httpServiceRef = useRef(httpService);
-
-    useEffect(() => {
-        httpServiceRef.current.setConfig({
-            baseURL: import.meta.env.VITE_API_ENDPOINT,
-        });
-    }, []);
-
-    const registerInvite = useCallback(async () => {
-        const response = await httpServiceRef.current.request({
-            url: '/register/invite',
-            responseType: 'json',
-        })
-        return response.data as IJwt
-    }, [httpService])
-
-    const registerEmail = useCallback(async (email: string) => {
-        const response = await httpServiceRef.current.request({
-            method: 'POST',
-            url: '/register',
-            responseType: 'json',
-            body: { "full_name": "", "phone": "", "email": email, "code": "" }
-        })
-        return response.data
-    }, [httpService])
-
-    const checkCode = useCallback(async (code: string, email: string): Promise<IJwt> => {
-        const response = await httpServiceRef.current.request({
-            method: 'POST',
-            url: '/register/check-code',
-            responseType: 'json',
-            body: { "email": email, "full_name": "-", "phone": "", "code": code }
-        })
-        return response.data as IJwt
-    }, [httpService])
-
-    const login = useCallback(async (user: string, pass: string): Promise<any> => {
-        const response = await httpServiceRef.current.request({
-            method: 'POST',
-            url: '/auth/login',
-            body: { user, pass },
-            responseType: 'json',
-        });
-        return response.data;
+        return response.data as IJwt;
     }, []);
 
     const logout = useCallback(async (): Promise<void> => {
@@ -891,120 +273,44 @@ export const useAuthorizationAPIClient = (httpService: HTTPService): Authorizati
         });
     }, []);
 
-    return { registerInvite, registerEmail, checkCode, login, logout };
+    return { login, logout };
 };
 ```
 
-### 2.6. `presentation/`
-
-**Ubicación:** `src/presentation/`
-
-#### Descripción
-
-La carpeta `presentation/` contiene las **páginas** y **componentes** de la interfaz de usuario. Aquí se construye la vista utilizando los componentes de UI y estilos necesarios para interactuar con el usuario.
-
-#### Estructura
-
-```plaintext
-presentation/
-├── components/
-├── layout/
-└── pages/
-    ├── VersionUpdatePrompt.tsx
-    ├── NotFound.tsx
-    ├── NotImplemented.tsx
-    ├── Home/
-    │   ├── Home.tsx
-    └── Register/
-        ├── Login.tsx
-        ├── Email.tsx
-        └── OTP.tsx
-```
-
-#### Ejemplos
-
-1. **Página de Login (`Login.tsx`):**
+2. **Adaptador de Almacenamiento de Preferencias con Capacitor (`useCapacitorPreferencesStorageAdapter.ts`):**
 
 ```typescript
-// src/presentation/pages/Register/Login.tsx
+// src/infrastructure/capacitor/useCapacitorPreferencesStorageAdapter.ts
 
-import React, { useState } from 'react';
-import { useAuth } from '@providers/AuthProvider';
-import { XButton } from '@theme/components/XButton';
-import { XInput } from '@theme/components/XInput';
-import { XPage } from '@theme/components/XPage';
+import { PreferencesStoragePort } from '@domain/ports/out/app/PreferencesStoragePort';
 
-export const Login = () => {
-    const { login } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-        await login(email, password);
-    };
-
-    return (
-        <XPage title="Iniciar Sesión">
-            <form onSubmit={handleSubmit}>
-                <XInput
-                    label="Correo Electrónico"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <XInput
-                    label="Contraseña"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <XButton type="submit">Ingresar</XButton>
-            </form>
-        </XPage>
-    );
-};
+export const useCapacitorPreferencesStorageAdapter = (): PreferencesStoragePort => {
+    return {
+        async set(key: string, value: string): Promise<any> {
+            localStorage.setItem(key, value);
+            return Promise.resolve();
+        },
+        async get(key: string) {
+            const value = localStorage.getItem(key);
+            return Promise.resolve(value);
+        },
+        async remove(key: string) {
+            localStorage.removeItem(key);
+            return Promise.resolve();
+        }
+    }
+}
 ```
 
-2. **Componente de Pagina 404 (`NotFound.tsx`):**
+---
 
-```typescript
-// src/presentation/pages/NotFound.tsx
-
-import { useNavigate } from 'react-router';
-
-interface IProps { }
-
-const NotFound: React.FC<IProps> = () => {
-
-    const navigate = useNavigate()
-
-    return (
-        <div>
-            <header>
-                <div>
-                    <button onClick={() => navigate(-1)}>
-                        <span>Volver</span>
-                    </button>
-                    <h1>No encontrado</h1>
-                </div>
-            </header>
-            <main>
-                <h1>Esta página no existe</h1>
-            </main>
-        </div>
-    );
-};
-
-export default NotFound;
-```
-
-### 2.7. `providers/`
+### 2.4. `providers/`
 
 **Ubicación:** `src/providers/`
 
 #### Descripción
 
-Los **Providers** son responsables de inyectar las dependencias y proporcionar los contextos necesarios a los componentes de la aplicación. Utilizan el **Context API** de React y pueden envolver a componentes con los adaptadores de infraestructura necesarios.
+Los **Providers** son responsables de inyectar las dependencias y proporcionar los contextos necesarios a los componentes de la aplicación. Utilizan el Context API de React y pueden envolver componentes con los adaptadores de infraestructura necesarios.
 
 #### Estructura
 
@@ -1030,57 +336,21 @@ providers/
 ```typescript
 // src/providers/AuthProvider.tsx
 
-import React, { createContext, ReactNode, useContext, useState, useEffect, ComponentType, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, ComponentType, useRef, PropsWithChildren } from 'react';
 import { useAuthorizationUseCase } from '../application/auth/useAuthorizationUseCase';
 import { useAuthorizationAPIClient } from '../infrastructure/api/useAuthorizationAPIClient';
-import { IUser } from '../domain/models/entities/IUser';
-import { IAuthorizationPort } from '../domain/ports/in/IAuthorizationPort';
+import { useAxiosHTTPClient } from '../infrastructure/api/useAxiosHTTPClient';
 import { usePreferencesStorage } from '@providers/withPreferencesStorageProvider';
-import { useAuthorizedAxiosHTTPClient } from '@infrastructure/api/useAuthorizedAxiosHTTPClient';
 
-const AuthProviderContext = createContext<IAuthorizationPort | null>(null);
-
-
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const useAuthAPI = useRef(useAuthorizationAPIClient(useAuthorizedAxiosHTTPClient(usePreferencesStorage())))
-    const useCases = useAuthorizationUseCase(useAuthAPI.current)
-
-    return (
-        <AuthProviderContext.Provider value={useCases}>
-            {children}
-        </AuthProviderContext.Provider>
-    );
-};
-
-export const withAuthProvider = <P extends object>(
-    WrappedComponent: ComponentType<P>
-): React.FC<P> => {
-    return (props: P) => {
-        return (
-            <AuthProvider>
-                <WrappedComponent {...props} />
-            </AuthProvider>
-        );
-    };
-};
-
-export const withAuth = <P extends object>(
-    WrappedComponent: ComponentType<P>
-): React.FC<P> => {
-    return (props: P) => {
-        const auth = useAuth();
-        return <WrappedComponent {...props} auth={{ ...auth }} />;
-    };
-};
-
-
-export const useAuth = (): IAuthorizationPort => {
-    const context = useContext(AuthProviderContext);
-    if (!context) {
-        throw new Error('useAuth debe ser usado dentro de AuthProvider');
-    }
-    return context;
-};
+export const {
+    Provider: AuthProvider,
+    useProvider: useAuth,
+    withProvider: withAuth,
+} = createProvider('auth', () => {
+    const authAPIRef = useRef(useAuthorizationAPIClient(useAxiosHTTPClient()));
+    const storageRef = useRef(usePreferencesStorage());
+    return useAuthorizationUseCase(authAPIRef.current, storageRef.current);
+}, 'useAuth debe ser usado dentro de AuthProvider');
 ```
 
 2. **`composeProvider.tsx`:**
@@ -1090,16 +360,20 @@ export const useAuth = (): IAuthorizationPort => {
 
 import React, { ReactNode } from 'react';
 
-export const composeProvider =
+const composeProvider =
     (...providers: Array<React.FC<{ children: ReactNode }>>) =>
         ({ children }: { children: ReactNode }) =>
             providers.reduceRight(
                 (acc, Provider) => <Provider>{acc}</Provider>,
                 children
             );
+
+export { composeProvider };
 ```
 
-### 2.8. `presentation/`
+---
+
+### 2.5. `presentation/`
 
 **Ubicación:** `src/presentation/`
 
@@ -1111,18 +385,25 @@ La carpeta `presentation/` contiene las **páginas** y **componentes** de la int
 
 ```plaintext
 presentation/
+├── pages/
+│   ├── Home/
+│   │   └── Home.tsx
+│   ├── VersionUpdatePrompt.tsx
+│   ├── NotFound.tsx
+│   ├── Fallback.tsx
+│   ├── NotImplemented.tsx
+│   ├── Auth/
+│   │   ├── Login.tsx
+│   │   └── Register.tsx
+│   └── App/
+│       └── AppRoutes.tsx
 ├── components/
-├── layout/
-└── pages/
-    ├── VersionUpdatePrompt.tsx
-    ├── NotFound.tsx
-    ├── NotImplemented.tsx
-    ├── Home/
-    │   ├── Home.tsx
-    └── Register/
-        ├── Login.tsx
-        ├── Email.tsx
-        └── OTP.tsx
+│   ├── Header.tsx
+│   └── Footer.tsx
+└── assets/
+    ├── icon/
+    │   ├── app-icon.png
+    │   └── favicon.png
 ```
 
 #### Ejemplos
@@ -1130,79 +411,136 @@ presentation/
 1. **Página de Login (`Login.tsx`):**
 
 ```typescript
-// src/presentation/pages/Register/Login.tsx
+// src/presentation/pages/Auth/Login.tsx
 
 import React, { useState } from 'react';
-import { useAuth } from '@providers/AuthProvider';
-import { XButton } from '@theme/components/XButton';
-import { XInput } from '@theme/components/XInput';
-import { XPage } from '@theme/components/XPage';
+import { useAuth } from '../../../providers/AuthProvider';
+import { XButton } from '../../../theme/components/XButton';
+import { XInput } from '../../../theme/components/XInput';
+import { XPage } from '../../../theme/components/XPage';
 
 export const Login = () => {
-    const { login } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-        await login(email, password);
-    };
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await login(email, password);
+  };
 
-    return (
-        <XPage title="Iniciar Sesión">
-            <form onSubmit={handleSubmit}>
-                <XInput
-                    label="Correo Electrónico"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <XInput
-                    label="Contraseña"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <XButton type="submit">Ingresar</XButton>
-            </form>
-        </XPage>
-    );
+  return (
+    <XPage title="Iniciar Sesión">
+      <form onSubmit={handleSubmit}>
+        <XInput
+          label="Correo Electrónico"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <XInput
+          label="Contraseña"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <XButton type="submit">Ingresar</XButton>
+      </form>
+    </XPage>
+  );
 };
 ```
 
-2. **Página de No Encontrado (`NotFound.tsx`):**
+---
+
+### 2.6. `routes/`
+
+**Ubicación:** `src/routes/`
+
+#### Descripción
+
+La carpeta `routes/` gestiona la configuración de las **rutas** y la **navegación** de la aplicación.
+
+#### Estructura
+
+```plaintext
+routes/
+├── index.tsx
+├── auth.tsx
+└── app.tsx
+```
+
+#### Ejemplos
+
+1. **Configuración de Rutas (`index.tsx`):**
 
 ```typescript
-// src/presentation/pages/NotFound.tsx
+// src/routes/index.tsx
 
-import { useNavigate } from 'react-router';
+import {
+    createBrowserRouter,
+    Navigate,
+} from "react-router-dom";
+import NotFound from "@pages/NotFound";
+import { PublicRoute } from "@routes/routeGuards";
+import auth from "./auth";
+import app from "./app";
+import NotImplemented from "@pages/NotImplemented";
+import VersionUpdatePrompt from "@pages/VersionUpdatePrompt";
 
-interface IProps { }
+export const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <PublicRoute />,
+        errorElement: <NotFound />,
+        children: [
+            {
+                path: "",
+                element: <PublicRoute component={<Navigate to={"/auth/login"} replace />} />
+            },
+            {
+                path: "update",
+                element: <VersionUpdatePrompt />
+            },
+            {
+                path: "debug",
+                element: <NotImplemented />
+            },
+            ...auth,
+            ...app
+        ]
+    },
+]);
 
-const NotFound: React.FC<IProps> = () => {
-
-    const navigate = useNavigate()
-
-    return (
-        <div>
-            <header>
-                <div>
-                    <button onClick={() => navigate(-1)}>
-                        <span>Volver</span>
-                    </button>
-                    <h1>No encontrado</h1>
-                </div>
-            </header>
-            <main>
-                <h1>Esta página no existe</h1>
-            </main>
-        </div>
-    );
-};
-
-export default NotFound;
+export default router
 ```
 
-### 2.9. `theme/`
+2. **Definición de Rutas Públicas (`PublicRoute.tsx`):**
+
+```typescript
+// src/routes/routeGuards.tsx
+
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@providers/AuthProvider";
+
+export const PublicRoute = ({ component, children }: { component?: React.ReactNode; children?: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <Navigate to="/app/home" replace />;
+  }
+
+  return (
+    <>
+      {component ?? children}
+    </>
+  );
+};
+```
+
+---
+
+### 2.7. `theme/`
 
 **Ubicación:** `src/theme/`
 
@@ -1211,127 +549,542 @@ export default NotFound;
 La carpeta `theme/` contiene el **sistema de diseño**, incluyendo estilos globales, temas y componentes estilizados.
 
 #### Estructura
+
 ```plaintext
 theme/
+├── GlobalStyles.ts
+├── FrameworkGlobalStyles.ts
 ├── components/
 │   ├── XButton.tsx
 │   ├── XInput.tsx
-│   └── XPage.tsx
-├── globalStyles.ts
-└── theme.ts
+│   ├── XPage.tsx
+│   └── XTitle.tsx
+├── styles/
+│   ├── variables.css
+│   ├── ionic-styles.ts
+├── themes/
+│   └── defaultTheme.ts
+└── tokens/
+    ├── colors.ts
+    └── spacing.ts
 ```
 
 #### Ejemplos
 
-1. **Componente de Botón (`XButton.tsx`):**
+1. **Definición de Tokens de Colores (`colors.ts`):**
+
+```typescript
+// src/theme/tokens/colors.ts
+
+export const colors = {
+  primary: '#007bff',
+  secondary: '#6c757d',
+  success: '#28a745',
+  danger: '#dc3545',
+  // Otros colores
+};
+```
+
+2. **Componente `XButton` en `theme/components` (`XButton.tsx`):**
 
 ```typescript
 // src/theme/components/XButton.tsx
 
+import React from 'react';
 import styled from 'styled-components';
+import { colors } from '../tokens/colors';
 
-export const XButton = styled.button`
-  background-color: #007bff;
+interface XButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary';
+  children: React.ReactNode;
+}
+
+const StyledButton = styled.button<{ variant: 'primary' | 'secondary' }>`
+  padding: 10px 20px;
+  background-color: ${(props) =>
+    props.variant === 'primary' ? colors.primary : colors.secondary};
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
-
-  &:hover {
-    background-color: #0056b3;
-  }
 `;
+
+export const XButton: React.FC<XButtonProps> = ({
+  variant = 'primary',
+  children,
+  ...props
+}) => (
+  <StyledButton variant={variant} {...props}>
+    {children}
+  </StyledButton>
+);
 ```
 
-2. **Componente de Input (`XInput.tsx`):**
+---
+
+### 2.8. `infrastructure/`
+
+**Ubicación:** `src/infrastructure/`
+
+#### Descripción
+
+La carpeta `infrastructure/` contiene las **implementaciones concretas** de los puertos definidos en el dominio. Aquí es donde se conecta la aplicación con tecnologías y servicios externos, como APIs y almacenamiento.
+
+#### Estructura
+
+```plaintext
+infrastructure/
+├── api/
+│   ├── useAuthorizedAxiosHTTPClient.ts
+│   ├── useAxiosHTTPClient.ts
+│   ├── useFetchHTTPClient.ts
+│   ├── useAuthorizationAPIClient.ts
+│   └── useUserAPIClient.ts
+├── capacitor/
+│   ├── useAppAdapter.ts
+│   ├── useCapacitorPreferencesStorageAdapter.ts
+│   └── usePushNotificationsAdapter.ts
+└── firebase/
+    ├── initializeApp.ts
+    ├── useFirebaseAnalyticsAdapter.ts
+    ├── useFirebaseErrorTrackingAdapter.ts
+    └── useFirebaseRemoteConfigAdapter.ts
+```
+
+#### Ejemplos
+
+1. **Implementación de `IAuthorizationServicePort` con Axios (`useAuthorizationAPIClient.ts`):**
+
+```typescript
+// src/infrastructure/api/useAuthorizationAPIClient.ts
+
+import { useCallback, useEffect, useRef } from 'react';
+import { HTTPService } from '@domain/ports/out/api/HTTPService';
+import { AuthorizationServicePort } from '@domain/ports/out/api/AuthorizationServicePort';
+import { IJwt } from '@domain/models/entities/IJwt';
+
+export const useAuthorizationAPIClient = (httpService: HTTPService): AuthorizationServicePort => {
+    const httpServiceRef = useRef(httpService);
+
+    useEffect(() => {
+        httpServiceRef.current.setConfig({
+            baseURL: import.meta.env.VITE_API_ENDPOINT,
+        });
+    }, []);
+
+    const login = useCallback(async (user: string, pass: string): Promise<IJwt> => {
+        const response = await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/auth/login',
+            body: { user, pass },
+            responseType: 'json',
+        });
+        return response.data as IJwt;
+    }, []);
+
+    const logout = useCallback(async (): Promise<void> => {
+        await httpServiceRef.current.request({
+            method: 'POST',
+            url: '/auth/logout',
+            responseType: 'json',
+        });
+    }, []);
+
+    return { login, logout };
+};
+```
+
+2. **Adaptador de Almacenamiento de Preferencias con Capacitor (`useCapacitorPreferencesStorageAdapter.ts`):**
+
+```typescript
+// src/infrastructure/capacitor/useCapacitorPreferencesStorageAdapter.ts
+
+import { PreferencesStoragePort } from '@domain/ports/out/app/PreferencesStoragePort';
+
+export const useCapacitorPreferencesStorageAdapter = (): PreferencesStoragePort => {
+    return {
+        async set(key: string, value: string): Promise<any> {
+            localStorage.setItem(key, value);
+            return Promise.resolve();
+        },
+        async get(key: string) {
+            const value = localStorage.getItem(key);
+            return Promise.resolve(value);
+        },
+        async remove(key: string) {
+            localStorage.removeItem(key);
+            return Promise.resolve();
+        }
+    }
+}
+```
+
+---
+
+### 2.9. `__test__/`
+
+**Ubicación:** `src/__test__/`
+
+#### Descripción
+
+La carpeta `__test__/` contiene las **pruebas unitarias** y de integración para los componentes y lógica de la aplicación.
+
+#### Estructura
+
+```plaintext
+__test__/
+├── App.test.tsx
+└── application/
+    └── auth/
+        └── useAuthorizationUseCase.test.tsx
+```
+
+#### Ejemplos
+
+1. **Prueba Unitaria para el Caso de Uso de Autorización (`useAuthorizationUseCase.test.tsx`):**
+
+```typescript
+// src/__test__/application/auth/useAuthorizationUseCase.test.tsx
+
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useAuthorizationUseCase } from '@application/auth/useAuthorizationUseCase';
+
+test('Debe iniciar sesión y actualizar el token', async () => {
+  const mockApi = {
+    login: jest.fn().mockResolvedValue({ access_token: 'mockToken', expires_in: 3600, token_type: 'Bearer' }),
+    logout: jest.fn()
+  };
+  const mockStorage = {
+    set: jest.fn(),
+    get: jest.fn().mockResolvedValue(null),
+    remove: jest.fn()
+  };
+
+  const { result } = renderHook(() => useAuthorizationUseCase(mockApi, mockStorage));
+
+  await act(async () => {
+    await result.current.login('user@example.com', 'password123');
+  });
+
+  expect(mockApi.login).toHaveBeenCalledWith('user@example.com', 'password123');
+  expect(mockStorage.set).toHaveBeenCalledWith('@token', 'mockToken');
+});
+```
+
+---
+
+### 2.10. `App.tsx` y `main.tsx`
+
+#### Descripción
+
+Estos archivos son el punto de entrada de la aplicación.
+
+1. **`App.tsx`:** Componente raíz que envuelve la aplicación con los providers necesarios.
+
+```typescript
+// src/App.tsx
+
+import React from 'react';
+import { composeProviders } from '@providers/composeProvider';
+import { WithAnalyticsProvider } from '@providers/withAnalyticsProvider';
+import { WithAppProvider } from '@providers/withAppProvider';
+import { WithErrorTrackingProvider } from '@providers/withErrorTrackingProvider';
+import { WithPreferencesStorageProvider } from '@providers/withPreferencesStorageProvider';
+import { WithPushNotificationsProvider } from '@providers/withPushNotificationProvider';
+import { WithRemoteConfigProvider } from '@providers/withRemoteConfigProvider';
+import { WithBooting } from '@providers/withBooting';
+import { AppRoutes } from './routes';
+import { ThemeProvider, createGlobalStyle } from 'styled-components';
+import { defaultTheme } from './theme/themes/defaultTheme';
+
+const GlobalStyle = createGlobalStyle`
+  body {
+    background-color: ${defaultTheme.colors.background};
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+`;
+
+const Providers = composeProviders(
+  // withServiceWorkerProvider,
+  WithAppProvider,
+  WithRemoteConfigProvider,
+  WithAnalyticsProvider,
+  WithErrorTrackingProvider,
+  WithPushNotificationsProvider,
+  WithPreferencesStorageProvider,
+);
+
+const App = () => (
+  <Providers>
+    <ThemeProvider theme={defaultTheme}>
+      <GlobalStyle />
+      <AppRoutes />
+    </ThemeProvider>
+  </Providers>
+);
+
+export default App;
+```
+
+2. **`main.tsx`:** Renderiza la aplicación en el DOM.
+
+```typescript
+// src/main.tsx
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { router } from './routes';
+import { RouterProvider } from 'react-router-dom';
+
+ReactDOM.render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+```
+
+---
+
+### 2.11. `hooks/`
+
+**Ubicación:** `src/hooks/`
+
+#### Descripción
+
+La carpeta `hooks/` contiene **hooks reutilizables** que pueden ser utilizados en diferentes partes de la aplicación.
+
+#### Ejemplos
+
+1. **Hook para Manejar el Estado de Carga (`useLoading.ts`):**
+
+```typescript
+// src/hooks/useLoading.ts
+
+import { useState } from 'react';
+
+export const useLoading = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const startLoading = () => setIsLoading(true);
+  const finishLoading = () => setIsLoading(false);
+
+  return { isLoading, startLoading, finishLoading };
+};
+```
+
+---
+
+### 2.12. `assets/`
+
+**Ubicación:** `src/assets/`
+
+#### Descripción
+
+La carpeta `assets/` contiene recursos estáticos utilizados en la aplicación, como imágenes, fuentes y otros archivos multimedia.
+
+#### Ejemplos
+
+1. **Icono de la Aplicación (`app-icon.png`):**
+
+```plaintext
+assets/
+└── icon/
+    ├── app-icon.png
+    └── favicon.png
+```
+
+---
+
+### 2.13. `setupTests.ts`
+
+**Ubicación:** `src/setupTests.ts`
+
+#### Descripción
+
+El archivo `setupTests.ts` se utiliza para configurar las pruebas globales, como la configuración de mocks y setup de bibliotecas de pruebas.
+
+#### Ejemplos
+
+1. **Configuración de Pruebas con `setupTests.ts`:**
+
+```typescript
+// src/setupTests.ts
+
+import '@testing-library/jest-dom/extend-expect';
+import { ToBooleanAttribute } from '@babel/types';
+import { TextMatch } from '@testing-library/react';
+import { MatchOptions } from '@testing-library/react';
+
+process.env.API_ENDPOINT = "http://localhost:3000";
+```
+
+---
+
+Al comprender esta estructura y cómo interactúan las diferentes carpetas y componentes, podrás navegar y contribuir al proyecto de manera efectiva. Cada capa tiene responsabilidades claras, y los ejemplos proporcionados ilustran cómo se implementan estas responsabilidades en el código.
+
+---
+
+### 2.14. `App.tsx` y `main.tsx`
+
+**Ubicación:** `src/`
+
+#### Descripción
+
+Estos archivos son los puntos de entrada de la aplicación.
+
+1. **`App.tsx`:** Componente raíz que envuelve la aplicación con los providers necesarios.
+
+```typescript
+// src/App.tsx
+
+import React from 'react';
+import { FrameworkProvider } from '@providers/FrameworkProvider';
+import { WithBooting } from '@providers/withBooting';
+import { useAuth } from '@providers/AuthProvider';
+import { router } from './routes';
+import { RouterProvider } from 'react-router-dom';
+
+const App = () => {
+  const { isAuthenticated, isReady } = useAuth();
+
+  if (!isReady) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <FrameworkProvider>
+      <WithBooting>
+        <RouterProvider router={router} />
+      </WithBooting>
+    </FrameworkProvider>
+  );
+};
+
+export default App;
+```
+
+2. **`main.tsx`:** Renderiza la aplicación en el DOM.
+
+```typescript
+// src/main.tsx
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+
+ReactDOM.render(<App />, document.getElementById('root'));
+```
+
+---
+
+### 2.15. `theme/`
+
+**Ubicación:** `src/theme/`
+
+#### Descripción
+
+La carpeta `theme/` contiene el **sistema de diseño**, incluyendo estilos globales, temas y componentes estilizados.
+
+#### Estructura
+
+```plaintext
+theme/
+├── GlobalStyles.ts
+├── FrameworkGlobalStyles.ts
+├── components/
+│   ├── Index.tsx
+│   ├── XButton.tsx
+│   ├── XInput.tsx
+│   ├── XPage.tsx
+│   ├── XTitle.tsx
+│   └── XToolbar.tsx
+├── icons/
+├── styles/
+│   ├── variables.css
+│   └── ionic-styles.ts
+├── themes/
+│   └── defaultTheme.ts
+└── tokens/
+    ├── colors.ts
+    └── spacing.ts
+```
+
+#### Ejemplos
+
+1. **Definición de un Componente Estilizado (`XInput.tsx`):**
 
 ```typescript
 // src/theme/components/XInput.tsx
 
-import styled from 'styled-components';
-
-export const XInput = styled.input`
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  width: 100%;
-`;
-```
-
-3. **Componente de Página (`XPage.tsx`):**
-
-```typescript
-// src/theme/components/XPage.tsx
-
 import React from 'react';
 import styled from 'styled-components';
+import { colors } from '../../tokens/colors';
 
-const PageWrapper = styled.div`
-  padding: 20px;
-`;
-
-const PageTitle = styled.h1`
-  font-size: 24px;
-  margin-bottom: 20px;
-`;
-
-interface XPageProps {
-  title: string;
-  children: React.ReactNode;
+interface XInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
 }
 
-export const XPage: React.FC<XPageProps> = ({ title, children }) => {
-  return (
-    <PageWrapper>
-      <PageTitle>{title}</PageTitle>
-      {children}
-    </PageWrapper>
-  );
-};
+const InputWrapper = styled.div`
+  margin-bottom: 16px;
+`;
+
+const Label = styled.label`
+  display: block;
+  margin-bottom: 8px;
+`;
+
+const StyledInput = styled.input`
+  width: 100%;
+  padding: 8px;
+  border: 1px solid ${colors.gray};
+  border-radius: 4px;
+`;
+
+export const XInput: React.FC<XInputProps> = ({ label, ...props }) => (
+  <InputWrapper>
+    <Label>{label}</Label>
+    <StyledInput {...props} />
+  </InputWrapper>
+);
 ```
 
-4. **Estilos Globales (`globalStyles.ts`):**
+2. **Estilos Globales (`GlobalStyles.ts`):**
 
 ```typescript
-// src/theme/globalStyles.ts
+// src/theme/GlobalStyles.ts
 
 import { createGlobalStyle } from 'styled-components';
 
-export const GlobalStyles = createGlobalStyle`
+const GlobalStyles = createGlobalStyle`
   body {
+    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-      monospace;
+    background-color: #f8f9fa;
   }
 `;
+
+export default GlobalStyles;
 ```
 
-5. **Tema (`theme.ts`):**
+---
 
-```typescript
-// src/theme/theme.ts
+### **Resumen**
 
-export const theme = {
-  colors: {
-    primary: '#007bff',
-    secondary: '#6c757d',
-    success: '#28a745',
-    danger: '#dc3545',
-    warning: '#ffc107',
-    info: '#17a2b8',
-    light: '#f8f9fa',
-    dark: '#343a40',
-  },
-};
-```
+El proyecto `boilerplate-app` está organizado en capas que cumplen roles específicos en la arquitectura:
+
+- **`domain/`:** Contiene la lógica de negocio y definiciones de entidades.
+- **`application/`:** Implementa los casos de uso utilizando hooks de React.
+- **`infrastructure/`:** Implementa los puertos con tecnologías externas, como Axios y Firebase.
+- **`providers/`:** Proporciona contextos y dependencias a los componentes de presentación.
+- **`presentation/`:** Contiene componentes y páginas de la interfaz de usuario.
+- **`hooks/`:** Almacena hooks reutilizables para diferentes partes de la aplicación.
+- **`__test__/`:** Contiene pruebas unitarias y de integración.
+- **`theme/`:** Define los estilos y componentes estilizados de la aplicación.
+
+Cada capa tiene su propia responsabilidad a fin de mantener el código modular y desacoplado, facilitando la gestión y escalabilidad del proyecto.
+
+---

@@ -1,27 +1,28 @@
 import React, { ReactNode } from "react";
 import { composeProviders } from "@providers/composeProvider";
-import { withAnalyticsProvider } from "@providers/withAnalyticsProvider";
-import { withAppProvider } from "@providers/withAppProvider";
-import { withErrorTrackingProvider } from "@providers/withErrorTrackingProvider";
-import { withPreferencesStorageProvider } from "@providers/withPreferencesStorageProvider";
-import { withPushNotificationsProvider } from "@providers/withPushNotificationProvider";
-import { withRemoteConfigProvider } from "@providers/withRemoteConfigProvider";
-import { withServiceWorkerProvider } from "./withServiceWorkerProvider";
+import { WithAnalyticsProvider } from "@providers/withAnalyticsProvider";
+import { WithAppProvider } from "@providers/withAppProvider";
+import { WithErrorTrackingProvider } from "@providers/withErrorTrackingProvider";
+import { WithPreferencesStorageProvider } from "@providers/withPreferencesStorageProvider";
+import { WithPushNotificationsProvider } from "@providers/withPushNotificationProvider";
+import { WithRemoteConfigProvider } from "@providers/withRemoteConfigProvider";
+import { WithReactQueryProvider } from "./withReactQueryProvider";
+// import { withServiceWorkerProvider } from "./withServiceWorkerProvider";
 
-export const withBooting = (children: ReactNode) => {
+export const WithBooting = (children: ReactNode) => {
     const BootedProviders = React.useMemo(
         () => composeProviders(
-            withServiceWorkerProvider,
-            withAppProvider,
-            withRemoteConfigProvider,
-            withAnalyticsProvider,
-            withErrorTrackingProvider,
-            withPushNotificationsProvider,
-            withPreferencesStorageProvider,
+            // withServiceWorkerProvider,
+            WithAppProvider,
+            WithRemoteConfigProvider,
+            WithAnalyticsProvider,
+            WithErrorTrackingProvider,
+            WithPushNotificationsProvider,
+            WithPreferencesStorageProvider,
+            WithReactQueryProvider
         ),
         []
     );
 
-    // Renderizar la aplicación envuelta en todos los providers
-    return <BootedProviders>{children}</BootedProviders>;
+    return <BootedProviders>{children}</BootedProviders>
 };

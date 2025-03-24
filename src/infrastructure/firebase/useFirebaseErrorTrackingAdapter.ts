@@ -2,7 +2,7 @@ import { ErrorTrackingPort } from "@domain/ports/out/analytics/ErrorTrackingPort
 
 const MockFirebaseCrashlytics = {
     log: async ({ message }: { message: string }) => {
-        console.log(`Log: ${message}`);
+        console.info(`Log: ${message}`);
     },
     recordException: async ({ message }: { message: string }) => {
         console.error(`Record Exception: ${message}`);

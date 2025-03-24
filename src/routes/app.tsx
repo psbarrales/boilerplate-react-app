@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router";
-import { ProtectedRouteByRoles, PublicRoute } from "./routeGuards";
-import Home from "@presentation/pages/Home/Home";
+import { PublicRoute } from "./routeGuards";
+import Home from "@pages/Home/Home";
 
 const home = {
     path: "home",

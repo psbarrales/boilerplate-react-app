@@ -7,7 +7,7 @@ import { useTheme, ThemeProvider } from 'styled-components';
 export const FrameworkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const theme = useTheme()
 
-    loadStyles
+    loadStyles()
     useEffect(() => {
         const handleBackButton = (event: any) => {
             event.preventDefault();
@@ -16,7 +16,7 @@ export const FrameworkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             if (window.history.length > 1) {
                 window.history.back(); // Retrocede una página en el historial del navegador
             } else {
-                console.log('No hay historial para retroceder.');
+                console.warn('No hay historial para retroceder.');
             }
         };
 
