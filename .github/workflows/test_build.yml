@@ -45,5 +45,5 @@ jobs:
         run: echo "${{ secrets.ENV_TESTING }}" > .env
 
       - name: Run end-to-end tests
-        run: npm run test.e2e
+        run: npm run test:e2e
         continue-on-error: true
