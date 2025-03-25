@@ -18,15 +18,9 @@ export const WithPushNotificationsProvider: React.FC<PropsWithChildren> = ({ chi
         loadConfig();
     }, []);
 
-    if (!initialized || !pushNotificationsService.current) {
-        return <PushNotificationsContext.Provider value={pushNotificationsService.current} >
-            <RequestPrompt title='Permisos de notificación' message='Por favor, habilita las notificaciones para continuar.' />
-            {children}
-        </PushNotificationsContext.Provider>;
-    }
-
     return (
         <PushNotificationsContext.Provider value={pushNotificationsService.current} >
+            {(!initialized || !pushNotificationsService.current) && (<RequestPrompt title='Permisos de notificación' message='Por favor, habilita las notificaciones para continuar.' />)}
             {children}
         </PushNotificationsContext.Provider>
     );
